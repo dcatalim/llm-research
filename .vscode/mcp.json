@@ -4,5 +4,15 @@
 			"command": "npx",
 			"args": ["mcp-remote", "https://svelte-llm.khromov.se/mcp/mcp"]
 		},
+
+		"inkeepMcp": {
+			"command": "npx",
+			"args": ["-y", "mcp-remote", "https://mcp.inkeep.com/zod/mcp"]
+		},
+
+		"jsrepo": {
+			"command": "npx",
+			"args": ["jsrepo", "mcp"]
+		}
 	}
 }

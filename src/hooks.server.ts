@@ -2,7 +2,7 @@ import PocketBase from 'pocketbase';
 import { serializeNonPOJOs } from '$lib/utils';
 import type { Handle } from '@sveltejs/kit';
 import { dev } from '$app/environment';
-import { POCKETBASE_URL } from '$env/static/public';
+import { POCKETBASE_URL } from '$env/static/private';
 import type { TypedPocketBase } from '$lib/pocketbase';
 
 export const handle: Handle = async ({ event, resolve }) => {

@@ -3,6 +3,7 @@
 	import favicon from '$lib/assets/favicon.svg';
 	import { ModeWatcher } from 'mode-watcher';
 	import ModeToggle from '$lib/components/ModeToggle.svelte';
+	import { Toaster } from "$lib/components/ui/sonner/index.js";
 
 	let { children } = $props();
 </script>
@@ -14,6 +15,8 @@
 <ModeWatcher />
 
 <ModeToggle />
+
+<Toaster />
 
 {@render children?.()}
 

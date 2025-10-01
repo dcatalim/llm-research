@@ -2,7 +2,6 @@
 	import '../app.css';
 	import favicon from '$lib/assets/favicon.svg';
 	import { ModeWatcher } from 'mode-watcher';
-	import ModeToggle from '$lib/components/ModeToggle.svelte';
 	import { Toaster } from "$lib/components/ui/sonner/index.js";
 
 	let { children } = $props();
@@ -14,17 +13,11 @@
 
 <ModeWatcher />
 
-<ModeToggle />
-
 <Toaster />
 
 {@render children?.()}
 
 <style>
-	html {
-		scroll-behavior: smooth;
-	}
-
 	/* View Transitions */
 	@keyframes fade-in {
 		from {

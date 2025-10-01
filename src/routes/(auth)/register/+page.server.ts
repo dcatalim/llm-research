@@ -26,7 +26,6 @@ export const actions: Actions = {
 
 		const data = {
 			email: form.data.email,
-			emailVisibility: true,
 			name: form.data.name + ' ' + form.data.surname,
 			password: form.data.password,
 			passwordConfirm: form.data.password,

@@ -1,4 +1,4 @@
-import PocketBase, { RecordService, AuthModel } from 'pocketbase';
+import PocketBase, { RecordService } from 'pocketbase';
 
 export interface Task {
   id:   string;

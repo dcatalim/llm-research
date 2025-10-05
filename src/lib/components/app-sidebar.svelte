@@ -6,6 +6,10 @@
 	import SettingsIcon from '@lucide/svelte/icons/settings';
 	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
 	import Logo from './Logo.svelte';
+	import NavUser from './nav-user.svelte';
+	import { getContext } from 'svelte';
+
+	const user = getContext('user');
 
 	// Menu items.
 	const items = [
@@ -18,7 +22,7 @@
 			title: 'Models',
 			url: '/dashboard/models',
 			icon: SettingsIcon
-		},
+		}
 		// {
 		// 	title: 'Calendar',
 		// 	url: '#',
@@ -61,4 +65,8 @@
 			</Sidebar.GroupContent>
 		</Sidebar.Group>
 	</Sidebar.Content>
+
+	<Sidebar.Footer>
+		<NavUser {user} />
+	</Sidebar.Footer>
 </Sidebar.Root>

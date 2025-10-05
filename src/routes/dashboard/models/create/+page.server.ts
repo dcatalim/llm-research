@@ -4,8 +4,13 @@ import { zod4 } from 'sveltekit-superforms/adapters';
 import { modelConfigurationSchema } from '$lib/schemas';
 import type { PageServerLoad, Actions } from './$types.js';
 import { fail } from '@sveltejs/kit';
+import { redirect } from '@sveltejs/kit';
 
-export const load = (async () => {
+export const load = (async ({ locals }) => {
+	if (!locals.pb.authStore.isValid) {
+		throw redirect(303, '/login');
+	}
+
 	return {
 		form: await superValidate(zod4(modelConfigurationSchema))
 	};
@@ -17,7 +22,7 @@ export const actions: Actions = {
 
 		if (!form.valid) {
 			// Will return fail(400, { form }) since form isn't valid
-			return message(form, 'Formulário Inválido');
+			return message(form, 'Invalid form');
 		}
 
 		try {

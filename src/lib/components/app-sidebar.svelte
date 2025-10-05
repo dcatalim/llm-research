@@ -15,25 +15,25 @@
 			icon: HouseIcon
 		},
 		{
-			title: 'Inbox',
-			url: '#',
-			icon: InboxIcon
-		},
-		{
-			title: 'Calendar',
-			url: '#',
-			icon: CalendarIcon
-		},
-		{
-			title: 'Search',
-			url: '#',
-			icon: SearchIcon
-		},
-		{
-			title: 'Settings',
-			url: '#',
+			title: 'Models',
+			url: '/dashboard/models',
 			icon: SettingsIcon
-		}
+		},
+		// {
+		// 	title: 'Calendar',
+		// 	url: '#',
+		// 	icon: CalendarIcon
+		// },
+		// {
+		// 	title: 'Search',
+		// 	url: '#',
+		// 	icon: SearchIcon
+		// },
+		// {
+		// 	title: 'Settings',
+		// 	url: '#',
+		// 	icon: SettingsIcon
+		// }
 	];
 </script>
 

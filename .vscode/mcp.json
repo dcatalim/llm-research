@@ -1,18 +1,30 @@
 {
 	"servers": {
-		"svelte-llm": {
-			"command": "npx",
-			"args": ["mcp-remote", "https://svelte-llm.khromov.se/mcp/mcp"]
-		},
-
 		"inkeepMcp": {
 			"command": "npx",
-			"args": ["-y", "mcp-remote", "https://mcp.inkeep.com/zod/mcp"]
+			"args": [
+				"-y",
+				"mcp-remote",
+				"https://mcp.inkeep.com/zod/mcp"
+			],
+			"type": "stdio"
 		},
-
 		"jsrepo": {
 			"command": "npx",
-			"args": ["jsrepo", "mcp"]
+			"args": [
+				"jsrepo",
+				"mcp"
+			],
+			"type": "stdio"
+		},
+		"svelte": {
+			"type": "stdio",
+			"command": "npx",
+			"args": [
+				"-y",
+				"@sveltejs/mcp"
+			]
 		}
-	}
+	},
+	"inputs": []
 }

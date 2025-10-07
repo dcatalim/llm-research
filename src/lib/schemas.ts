@@ -20,6 +20,15 @@ export const registerSchema = z.object({
 });
 export type RegisterSchema = typeof registerSchema;
 
+export const userUpdateSchema = z.object({
+	name: z.string().nonempty(),
+	surname: z.string().nonempty(),
+	email: z.email().nonempty(),
+	openRouterKey: z.string().optional() // Add this field
+
+});
+export type UserUpdateSchema = typeof userUpdateSchema;
+
 export const modelConfigurationSchema = z.object({
 	name: z.string().nonempty(),
 	provider: z.string().nonempty(),
@@ -31,3 +40,5 @@ export const modelConfigurationSchema = z.object({
 	frequencyPenalty: z.number().default(0)
 });
 export type ModelConfigurationSchema = typeof modelConfigurationSchema;
+
+

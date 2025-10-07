@@ -60,7 +60,7 @@
 				</DropdownMenu.Label>
 				<DropdownMenu.Separator />
 				<DropdownMenu.Group>
-					<DropdownMenu.Item>
+					<DropdownMenu.Item onclick={() => goto('/dashboard/account')} class='hover:cursor-pointer'>
 						<UserCircleIcon />
 						Account
 					</DropdownMenu.Item>
@@ -74,7 +74,7 @@
 					</DropdownMenu.Item>
 				</DropdownMenu.Group>
 				<DropdownMenu.Separator />
-				<DropdownMenu.Item onclick={() => goto('/logout')}>
+				<DropdownMenu.Item onclick={() => goto('/logout')} class='hover:cursor-pointer'>
 					<LogoutIcon />
 					Log out
 				</DropdownMenu.Item>

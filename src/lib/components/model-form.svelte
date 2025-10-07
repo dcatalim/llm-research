@@ -5,13 +5,8 @@
 	import SuperDebug, { type SuperValidated, type Infer, superForm } from 'sveltekit-superforms';
 	import { zod4Client } from 'sveltekit-superforms/adapters';
 	import * as Card from '$lib/components/ui/card';
-	import { Button } from '$lib/components/ui/button';
 	import Save from '@lucide/svelte/icons/save';
-	import Share2 from '@lucide/svelte/icons/share-2';
-	import * as Field from '$lib/components/ui/field/index.js';
-	import { Switch } from '$lib/components/ui/switch';
 	import * as Select from '$lib/components/ui/select';
-	import { Label } from '$lib/components/ui/label';
 	import { Textarea } from '$lib/components/ui/textarea';
 	import { Slider } from '$lib/components/ui/slider/index.js';
 	import { dev } from '$app/environment';

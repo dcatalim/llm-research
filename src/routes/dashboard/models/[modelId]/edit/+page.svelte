@@ -1,7 +1,8 @@
 <script lang="ts">
+	import ModelForm from '$lib/components/model-form.svelte';
     import type { PageProps } from './$types';
 
     let { data }: PageProps = $props();
 </script>
 
-{JSON.stringify(data.model)}
+<ModelForm data={data} />

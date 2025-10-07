@@ -1,8 +1,8 @@
 <script lang="ts">
+	import ModelForm from '$lib/components/model-form.svelte';
 	import type { PageProps } from './$types';
-	import CreateModelForm from './create-model-form.svelte';
 
 	let { data }: PageProps = $props();
 </script>
 
-<CreateModelForm {data} ></CreateModelForm>
+<ModelForm {data}></ModelForm>

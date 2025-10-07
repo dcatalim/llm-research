@@ -3,28 +3,72 @@ import type { PageServerLoad } from './$types';
 import { zod4 } from 'sveltekit-superforms/adapters';
 import { modelConfigurationSchema } from '$lib/schemas';
 import { fail } from '@sveltejs/kit';
-
-const getModelbyId = async (pb, modelId: string) => {
-	try {
-		const record = await pb.collection('models').getOne(modelId);
-		return record;
-	} catch (error) {
-		console.error('Error fetching model:', error);
-		return null;
-	}
-};
+import { message } from 'sveltekit-superforms';
+import type { Actions } from '@sveltejs/kit';
+import { invalidateAll } from '$app/navigation';
 
 export const load = (async ({ locals, params }) => {
 	const modelId = params.modelId;
 
-	const record = await getModelbyId(locals.pb, modelId);
+	const getModelbyId = async (modelId: string) => {
+		try {
+			const record = await locals.pb.collection('models').getOne(modelId);
+			return record;
+		} catch (error) {
+			console.error('Error fetching model:', error);
+			return error;
+		}
+	};
 
-	if (!record) {
+	const model = await getModelbyId(modelId);
+
+	if (!model) {
 		throw fail(404, 'Model not found');
 	}
 
 	return {
-        model: record,
-		form: await superValidate(record, zod4(modelConfigurationSchema))
+		model: model,
+		form: await superValidate(model, zod4(modelConfigurationSchema))
 	};
 }) satisfies PageServerLoad;
+
+export const actions: Actions = {
+	default: async ({ locals, request, params }) => {
+		const modelId = params.modelId as string;
+
+		const form = await superValidate(request, zod4(modelConfigurationSchema));
+
+		if (!form.valid) {
+			// Will return fail(400, { form }) since form isn't valid
+			return message(form, 'Invalid form');
+		}
+
+		try {
+			const data = {
+				name: form.data.name,
+				provider: form.data.provider,
+				version: form.data.version,
+				systemPrompt: form.data.systemPrompt,
+				temperature: form.data.temperature,
+				maxTokens: form.data.maxTokens,
+				topP: form.data.topP,
+				frequencyPenalty: form.data.frequencyPenalty,
+				creator: locals.user?.id
+			};
+
+			const record = await locals.pb.collection('models').update(modelId, data);
+			return message(form, 'Model successfully updated!');
+		} catch (err) {
+			console.log('Error: ', err);
+
+			if (err?.message && err?.status) {
+				// Will return fail and set form.valid = false, since status is >= 400
+				return message(form, err?.message, { status: err?.status });
+			}
+		}
+
+		return {
+			form
+		};
+	}
+};

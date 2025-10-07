@@ -16,18 +16,18 @@
 	import { Slider } from '$lib/components/ui/slider/index.js';
 	import { dev } from '$app/environment';
 	import { toast } from 'svelte-sonner';
-	import { goto } from '$app/navigation';
 	import { Spinner } from '$lib/components/ui/spinner/index.js';
 
 	let { data }: { data: { form: SuperValidated<Infer<ModelConfigurationSchema>> } } = $props();
 
 	const form = superForm(data.form, {
+		resetForm: false,
 		validators: zod4Client(modelConfigurationSchema),
 		onUpdated({ form }) {
 			if (form.message) {
 				if (form.valid) {
 					toast.success(form.message);
-					goto('/dashboard/models');
+					// goto('/dashboard/models');
 				} else {
 					toast.error(form.message);
 				}
@@ -62,7 +62,7 @@
 <form method="POST" class="flex flex-col gap-4" use:enhance>
 	<div class="flex items-center justify-between">
 		<div>
-			<h1 class="text-3xl font-bold text-foreground">Create Model Configuration</h1>
+			<h1 class="text-3xl font-bold text-foreground">Model Configuration</h1>
 			<p class="text-muted-foreground">Configure your custom LLM settings</p>
 		</div>
 		<div class="flex gap-2">

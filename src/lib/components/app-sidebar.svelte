@@ -1,5 +1,5 @@
 <script lang="ts">
-	import CalendarIcon from '@lucide/svelte/icons/calendar';
+	import KeyIcon from '@lucide/svelte/icons/key';
 	import HouseIcon from '@lucide/svelte/icons/house';
 	import InboxIcon from '@lucide/svelte/icons/inbox';
 	import SearchIcon from '@lucide/svelte/icons/search';
@@ -22,12 +22,12 @@
 			title: 'Models',
 			url: '/dashboard/models',
 			icon: SettingsIcon
+		},
+		{
+			title: 'Keys',
+			url: '/dashboard/keys',
+			icon: KeyIcon
 		}
-		// {
-		// 	title: 'Calendar',
-		// 	url: '#',
-		// 	icon: CalendarIcon
-		// },
 		// {
 		// 	title: 'Search',
 		// 	url: '#',

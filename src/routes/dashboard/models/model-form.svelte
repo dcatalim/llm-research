@@ -6,12 +6,18 @@
 	import { zod4Client } from 'sveltekit-superforms/adapters';
 	import * as Card from '$lib/components/ui/card';
 	import Save from '@lucide/svelte/icons/save';
-	import * as Select from '$lib/components/ui/select';
+	import * as Command from '$lib/components/ui/command/index.js';
+	import * as Popover from '$lib/components/ui/popover/index.js';
+	import { Button } from '$lib/components/ui/button/index.js';
 	import { Textarea } from '$lib/components/ui/textarea';
 	import { Slider } from '$lib/components/ui/slider/index.js';
 	import { dev } from '$app/environment';
 	import { toast } from 'svelte-sonner';
 	import { Spinner } from '$lib/components/ui/spinner/index.js';
+	import { onMount, tick } from 'svelte';
+	import CheckIcon from '@lucide/svelte/icons/check';
+	import ChevronsUpDownIcon from '@lucide/svelte/icons/chevrons-up-down';
+	import { cn } from '$lib/utils.js';
 
 	let { data }: { data: { form: SuperValidated<Infer<ModelConfigurationSchema>> } } = $props();
 
@@ -25,6 +31,7 @@
 					// goto('/dashboard/models');
 				} else {
 					toast.error(form.message);
+					console.error('Form submission error:', form.errors);
 				}
 			}
 		}
@@ -32,26 +39,67 @@
 
 	const { form: formData, delayed, enhance } = form;
 
-	const providers = [
-		{ value: 'openai', label: 'OpenAI' },
-		{ value: 'anthropic', label: 'Anthropic' },
-		{ value: 'google', label: 'Google' },
-		{ value: 'meta', label: 'Meta' }
-	];
+	interface OpenRouterModel {
+		id: string;
+		name: string;
+		description?: string;
+		context_length?: number;
+		pricing?: {
+			prompt: string;
+			completion: string;
+		};
+	}
 
-	const providerTriggerContent = $derived(
-		providers.find((f) => f.value === $formData.provider)?.label ?? 'Select a provider'
+	let models = $state<OpenRouterModel[]>([]);
+	let loadingModels = $state(true);
+	let selectedModelId = $state($formData.version || '');
+	let open = $state(false);
+	let triggerRef = $state<HTMLButtonElement>(null!);
+
+	// Fetch models from OpenRouter API
+	onMount(async () => {
+		try {
+			const response = await fetch('https://openrouter.ai/api/v1/models');
+			const result = await response.json();
+
+			if (result.data && Array.isArray(result.data)) {
+				models = result.data;
+			}
+		} catch (error) {
+			console.error('Failed to fetch models:', error);
+			toast.error('Failed to load models from OpenRouter');
+		} finally {
+			loadingModels = false;
+		}
+	});
+
+	const modelOptions = $derived(
+		models.map((model) => ({
+			value: model.id,
+			label: model.name || model.id
+		}))
 	);
 
-	const versions = [
-		{ value: 'gpt-4-turbo', label: 'GPT-4 Turbo' },
-		{ value: 'gpt-4', label: 'GPT-4' },
-		{ value: 'gpt-3.5-turbo', label: 'GPT-3.5 Turbo' }
-	];
-
-	const versionTriggerContent = $derived(
-		versions.find((f) => f.value === $formData.version)?.label ?? 'Select a version'
+	const selectedModelLabel = $derived(
+		modelOptions.find((m) => m.value === selectedModelId)?.label ?? 'Select a model...'
 	);
+
+	// Extract provider from model ID (e.g., "openai/gpt-4" -> "openai")
+	$effect(() => {
+		if (selectedModelId) {
+			const provider = selectedModelId.split('/')[0] || '';
+			$formData.provider = provider;
+			$formData.version = selectedModelId;
+		}
+	});
+
+	// Close popover and refocus trigger button
+	function closeAndFocusTrigger() {
+		open = false;
+		tick().then(() => {
+			triggerRef?.focus();
+		});
+	}
 </script>
 
 <form method="POST" class="flex flex-col gap-4" use:enhance>
@@ -92,42 +140,71 @@
 					</Form.Control>
 					<Form.FieldErrors />
 				</Form.Field>
+				<input type="hidden" name='provider' bind:value={$formData.provider} />
 
-				<Form.Field {form} name="provider">
-					<Form.Control>
-						{#snippet children({ props })}
-							<Form.Label>Model Provider</Form.Label>
-							<Select.Root type="single" bind:value={$formData.provider} name={props.name}>
-								<Select.Trigger {...props} class="w-[180px]">
-									{providerTriggerContent}
-								</Select.Trigger>
-								<Select.Content>
-									{#each providers as item (item.value)}
-										<Select.Item value={item.value} label={item.label} />
-									{/each}
-								</Select.Content>
-							</Select.Root>
-						{/snippet}
-					</Form.Control>
-					<Form.FieldErrors />
-				</Form.Field>
 
 				<Form.Field {form} name="version">
 					<Form.Control>
 						{#snippet children({ props })}
-							<Form.Label>Model Version</Form.Label>
-							<Select.Root type="single" bind:value={$formData.version} name={props.name}>
-								<Select.Trigger {...props} class="w-[180px]">
-									{versionTriggerContent}
-								</Select.Trigger>
-								<Select.Content>
-									{#each versions as item (item.value)}
-										<Select.Item value={item.value} label={item.label} />
-									{/each}
-								</Select.Content>
-							</Select.Root>
+							<Form.Label>Model</Form.Label>
+							{#if loadingModels}
+								<div
+									class="flex items-center gap-2 rounded-md border border-input bg-background px-3 py-2"
+								>
+									<Spinner class="h-4 w-4" />
+									<span class="text-sm text-muted-foreground">Loading models...</span>
+								</div>
+							{:else}
+								<input type="hidden" {...props} bind:value={selectedModelId} />
+								<Popover.Root bind:open>
+									<Popover.Trigger bind:ref={triggerRef}>
+										{#snippet child({ props: popoverProps })}
+											<Button
+												variant="outline"
+												class="w-full justify-between"
+												{...popoverProps}
+												role="combobox"
+												aria-expanded={open}
+											>
+												{selectedModelLabel}
+												<ChevronsUpDownIcon class="ml-2 size-4 shrink-0 opacity-50" />
+											</Button>
+										{/snippet}
+									</Popover.Trigger>
+									<Popover.Content class="w-full p-0">
+										<Command.Root>
+											<Command.Input placeholder="Search models..." />
+											<Command.List>
+												<Command.Empty>No model found.</Command.Empty>
+												<Command.Group>
+													{#each modelOptions as model, index (model.value)}
+														<Command.Item
+															value={model.value}
+															onSelect={() => {
+																selectedModelId = model.value;
+																closeAndFocusTrigger();
+															}}
+														>
+															<CheckIcon
+																class={cn(
+																	'mr-2 size-4',
+																	selectedModelId !== model.value && 'text-transparent'
+																)}
+															/>
+															{model.label}
+														</Command.Item>
+													{/each}
+												</Command.Group>
+											</Command.List>
+										</Command.Root>
+									</Popover.Content>
+								</Popover.Root>
+							{/if}
 						{/snippet}
 					</Form.Control>
+					<Form.Description class="text-xs"
+						>Select a model from OpenRouter's available models.</Form.Description
+					>
 					<Form.FieldErrors />
 				</Form.Field>
 

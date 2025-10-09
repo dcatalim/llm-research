@@ -33,17 +33,18 @@ export type UserUpdateSchema = typeof userUpdateSchema;
 export const modelConfigurationSchema = z.object({
 	name: z.string().nonempty(),
 	provider: z.string().nonempty(),
-	version: z.string().nonempty(),
+	version: z.string().nonoptional(),
 	systemPrompt: z.string().optional(),
 	temperature: z.number().default(0.7),
 	maxTokens: z.number().default(2048),
 	topP: z.number().default(0.9),
-	frequencyPenalty: z.number().default(0)
+	frequencyPenalty: z.number().default(0),
+	api_key: z.string().nonempty()
 });
 export type ModelConfigurationSchema = typeof modelConfigurationSchema;
 
 export const apiKeySchema = z.object({
 	name: z.string().nonempty(),
-	apiKey: z.string().nonempty(),
+	apiKey: z.string().nonempty()
 });
 export type ApiKeySchema = typeof apiKeySchema;

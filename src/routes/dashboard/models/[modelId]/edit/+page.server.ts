@@ -6,6 +6,7 @@ import { fail } from '@sveltejs/kit';
 import { message } from 'sveltekit-superforms';
 import type { Actions } from '@sveltejs/kit';
 import { invalidateAll } from '$app/navigation';
+import { serializeNonPOJOs } from '$lib/utils';
 
 export const load = (async ({ locals, params }) => {
 	const modelId = params.modelId;
@@ -13,10 +14,23 @@ export const load = (async ({ locals, params }) => {
 	const getModelbyId = async (modelId: string) => {
 		try {
 			const record = await locals.pb.collection('models').getOne(modelId);
-			return record;
+			return serializeNonPOJOs(record);
 		} catch (error) {
 			console.error('Error fetching model:', error);
 			return error;
+		}
+	};
+
+	const getUserApiKeys = async () => {
+		try {
+			const records = await locals.pb.collection('api_keys').getFullList({
+				sort: '-created'
+			});
+
+			return serializeNonPOJOs(records);
+		} catch (error) {
+			console.error('Error fetching API keys:', error);
+			return [];
 		}
 	};
 
@@ -28,6 +42,7 @@ export const load = (async ({ locals, params }) => {
 
 	return {
 		model: model,
+		apiKeys: await getUserApiKeys(),
 		form: await superValidate(model, zod4(modelConfigurationSchema))
 	};
 }) satisfies PageServerLoad;

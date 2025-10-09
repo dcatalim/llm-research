@@ -3,14 +3,29 @@ import { zod4 } from 'sveltekit-superforms/adapters';
 import { modelConfigurationSchema } from '$lib/schemas';
 import type { PageServerLoad, Actions } from './$types.js';
 import { redirect } from '@sveltejs/kit';
+import { serializeNonPOJOs } from '$lib/utils';
 
 export const load = (async ({ locals }) => {
 	if (!locals.pb.authStore.isValid) {
 		throw redirect(303, '/login');
 	}
 
+	const getUserApiKeys = async () => {
+		try {
+			const records = await locals.pb.collection('api_keys').getFullList({
+				sort: '-created'
+			});
+
+			return serializeNonPOJOs(records);
+		} catch (error) {
+			console.error('Error fetching API keys:', error);
+			return [];
+		}
+	};
+
 	return {
-		form: await superValidate(zod4(modelConfigurationSchema))
+		form: await superValidate(zod4(modelConfigurationSchema)),
+		apiKeys: await getUserApiKeys()
 	};
 }) satisfies PageServerLoad;
 
@@ -33,13 +48,14 @@ export const actions: Actions = {
 				maxTokens: form.data.maxTokens,
 				topP: form.data.topP,
 				frequencyPenalty: form.data.frequencyPenalty,
+				api_key: form.data.api_key,
 				creator: locals.user?.id
 			};
 
 			const record = await locals.pb.collection('models').create(data);
 
 			return message(form, 'Model successfully created!');
-		} catch (err) {
+		} catch (err: any) {
 			console.log('Error: ', err);
 
 			if (err?.message && err?.status) {

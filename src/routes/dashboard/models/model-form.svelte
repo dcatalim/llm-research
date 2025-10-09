@@ -18,8 +18,9 @@
 	import CheckIcon from '@lucide/svelte/icons/check';
 	import ChevronsUpDownIcon from '@lucide/svelte/icons/chevrons-up-down';
 	import { cn } from '$lib/utils.js';
+	import * as Select from '$lib/components/ui/select';
 
-	let { data }: { data: { form: SuperValidated<Infer<ModelConfigurationSchema>> } } = $props();
+	let { data }: { data: { form: SuperValidated<Infer<ModelConfigurationSchema>>, apiKeys: any[] } } = $props();
 
 	const form = superForm(data.form, {
 		resetForm: false,
@@ -140,8 +141,7 @@
 					</Form.Control>
 					<Form.FieldErrors />
 				</Form.Field>
-				<input type="hidden" name='provider' bind:value={$formData.provider} />
-
+				<input type="hidden" name="provider" bind:value={$formData.provider} />
 
 				<Form.Field {form} name="version">
 					<Form.Control>
@@ -322,13 +322,40 @@
 		</Card.Root>
 	</div>
 
-	<!-- <Card.Root>
+	<Card.Root>
 		<Card.Header>
-			<Card.Title>Testing & Sharing</Card.Title>
+			<Card.Title>Additional Configuration</Card.Title>
 			<Card.Description>Configure how testers interact with this model</Card.Description>
 		</Card.Header>
 		<Card.Content class="w-full space-y-2">
-			<div class="flex flex-row items-center justify-between rounded-lg border p-4">
+			<Form.Field {form} name="api_key">
+				<Form.Control>
+					{#snippet children({ props })}
+						<Form.Label>API Key</Form.Label>
+						{#if data.apiKeys.length === 0}
+							<div class="flex items-center gap-2 rounded-md border border-input bg-background px-3 py-2 w-fit">
+								<span class="text-sm text-muted-foreground">No API keys found. <a href="/dashboard/keys/create" class="text-primary hover:underline">Create one first</a>.</span>
+							</div>
+						{:else}
+							<Select.Root type="single" bind:value={$formData.api_key} name={props.name}>
+								<Select.Trigger {...props} class="w-[180px]">
+									{data.apiKeys.find((key) => key.id === $formData.api_key)?.name ?? 'Select an API key...'}
+								</Select.Trigger>
+								<Select.Content>
+									{#each data.apiKeys as apiKey (apiKey.id)}
+										<Select.Item value={apiKey.id} label={apiKey.name} />
+									{/each}
+								</Select.Content>
+							</Select.Root>
+						{/if}
+					{/snippet}
+				</Form.Control>
+				<Form.Description class="text-xs"
+					>Select an API key to use with this model configuration.</Form.Description
+				>
+				<Form.FieldErrors />
+			</Form.Field>
+			<!-- <div class="flex flex-row items-center justify-between rounded-lg border p-4">
 				<div class="space-y-0.5">
 					<Label>Marketing emails</Label>
 					<p class="text-muted-foreground">
@@ -343,9 +370,9 @@
 					<p class="text-muted-foreground">Receive emails about your account security.</p>
 				</div>
 				<Switch aria-readonly disabled />
-			</div>
+			</div> -->
 		</Card.Content>
-	</Card.Root> -->
+	</Card.Root>
 
 	{#if dev}
 		<SuperDebug data={formData} />

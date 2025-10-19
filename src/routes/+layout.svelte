@@ -4,10 +4,15 @@
 	import { ModeWatcher } from 'mode-watcher';
 	import { Toaster } from '$lib/components/ui/sonner/index.js';
 	import { setContext } from 'svelte';
+	import { createAIContext } from '@ai-sdk/svelte';
 
 	let { children, data } = $props();
 
 	setContext('user', data.user);
+
+	createAIContext();
+	// all hooks created after this or in components that are children of this component
+	// will have synchronized state
 </script>
 
 <svelte:head>

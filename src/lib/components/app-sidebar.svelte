@@ -25,7 +25,7 @@
 		<SidebarMenu>
 			<div class="flex h-10 flex-row items-center justify-between md:h-[34px]">
 				<a
-					href="/"
+					href="/chats"
 					onclick={() => {
 						context.setOpenMobile(false);
 					}}

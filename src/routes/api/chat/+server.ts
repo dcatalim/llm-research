@@ -1,15 +1,15 @@
-import {
-	streamText,
-	type UIMessage,
-	convertToModelMessages,
-	generateId
-} from 'ai';
+import { streamText, type UIMessage, convertToModelMessages, generateId } from 'ai';
 import { createOpenRouter } from '@openrouter/ai-sdk-provider';
-import { OPENROUTER_API_KEY } from '$env/static/private';
+import { GOOGLE_GENERATIVE_AI_API_KEY, OPENROUTER_API_KEY } from '$env/static/private';
 import { error } from '@sveltejs/kit';
 import { getMostRecentUserMessage, getTrailingMessageId } from '$lib/utils/chat.js';
-import type { Chat, Message } from '$lib/pocketbase.js';
+import type { Chat } from '$lib/pocketbase.js';
 import { generateTitleFromUserMessage } from '$lib/server/ai/utils';
+import { createGoogleGenerativeAI } from '@ai-sdk/google';
+
+const google = createGoogleGenerativeAI({
+	apiKey: GOOGLE_GENERATIVE_AI_API_KEY
+});
 
 const openrouter = createOpenRouter({
 	apiKey: OPENROUTER_API_KEY
@@ -49,7 +49,7 @@ export async function POST({ request, locals }) {
 		messages
 	}: {
 		chatId: string;
-		messages: Array<Message>;
+		messages: Array<UIMessage>;
 	}) => {
 		try {
 			for (const message of messages) {
@@ -57,7 +57,7 @@ export async function POST({ request, locals }) {
 					chatId: chatId,
 					role: message.role,
 					parts: message.parts,
-					attachments: message.attachments
+					attachments: message.experimental_attachments ?? []
 				};
 
 				await locals.pb.collection('messages').create(data);
@@ -88,19 +88,11 @@ export async function POST({ request, locals }) {
 
 		saveMessages({
 			chatId: chat.id,
-			messages: [
-				{
-					chatId: chat.id,
-					id: userMessage.id,
-					role: 'user',
-					parts: userMessage.parts,
-					attachments: userMessage.experimental_attachments ?? []
-				}
-			]
+			messages: [userMessage]
 		});
 
 		const result = streamText({
-			model: openrouter.chat('meta-llama/llama-3.3-8b-instruct:free'),
+			model: google('gemini-2.5-flash'),
 			messages: convertToModelMessages(messages)
 		});
 
@@ -109,7 +101,7 @@ export async function POST({ request, locals }) {
 			generateMessageId: () => generateId(), // IMPORTANT: Required for proper message ID generation
 			onFinish: ({ messages, responseMessage }) => {
 				// responseMessage contains just the generated message in UIMessage format
-				saveMessages({ chatId: chat.id, messages: [ responseMessage] });
+				saveMessages({ chatId: chat.id, messages: [responseMessage] });
 			}
 		});
 	}

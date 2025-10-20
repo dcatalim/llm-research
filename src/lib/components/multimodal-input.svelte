@@ -1,13 +1,13 @@
 <script lang="ts">
 	import type { Chat } from '@ai-sdk/svelte';
-	// import PreviewAttachment from './preview-attachment.svelte';
-	import { Textarea } from "$lib/components/ui/textarea"	
+	import PreviewAttachment from './preview-attachment.svelte';
+	import { Textarea } from '$lib/components/ui/textarea';
 	import { cn } from '$lib/utils';
 	import { onMount } from 'svelte';
 	import { LocalStorage } from '$lib/hooks/local-storage.svelte';
 	import { innerWidth } from 'svelte/reactivity/window';
 	import { toast } from 'svelte-sonner';
-	import { Button } from "$lib/components/ui/button"
+	import { Button } from '$lib/components/ui/button';
 	import PaperclipIcon from '@lucide/svelte/icons/paperclip';
 	import StopIcon from '@lucide/svelte/icons/circle-stop';
 	import ArrowUpIcon from '@lucide/svelte/icons/arrow-up';
@@ -69,7 +69,7 @@
 		}
 
 		// Convert FileParts to the format expected by sendMessage
-		const files = attachments.map(part => ({
+		const files = attachments.map((part) => ({
 			type: 'file' as const,
 			filename: part.name || 'file',
 			mediaType: part.mediaType,
@@ -102,12 +102,14 @@
 
 			if (response.ok) {
 				const data = await response.json();
-				const { url, pathname, contentType } = data;
+				console.log('File Uploaded', data);
+				const { id, url, pathname, contentType } = data;
 
 				return {
 					type: 'file',
-					data: url,
-					mediaType: contentType,
+					id: id,
+					url: url,
+					contentType: contentType,
 					name: pathname
 				};
 			}
@@ -164,9 +166,10 @@
 		multiple
 		onchange={handleFileChange}
 		tabIndex={-1}
+		accept="image/png, image/jpeg"
 	/>
 
-	<!-- {#if attachments.length > 0 || uploadQueue.length > 0}
+	{#if attachments.length > 0 || uploadQueue.length > 0}
 		<div class="flex flex-row items-end gap-2 overflow-x-scroll">
 			{#each attachments as attachment (attachment.url)}
 				<PreviewAttachment {attachment} />
@@ -183,14 +186,14 @@
 				/>
 			{/each}
 		</div>
-	{/if} -->
+	{/if}
 
 	<Textarea
 		bind:ref={textareaRef}
 		placeholder="Send a message..."
 		bind:value={() => input, setInput}
 		class={cn(
-			'bg-muted max-h-[calc(75dvh)] min-h-[24px] resize-none overflow-hidden rounded-2xl pb-10 !text-base dark:border-zinc-700',
+			'max-h-[calc(75dvh)] min-h-[24px] resize-none overflow-hidden rounded-2xl bg-muted pb-10 !text-base dark:border-zinc-700',
 			c
 		)}
 		rows={2}

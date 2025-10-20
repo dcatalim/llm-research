@@ -1,3 +1,4 @@
+import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 
 export const load = (async ({ locals, params }) => {
@@ -13,6 +14,10 @@ export const load = (async ({ locals, params }) => {
 	};
 
     const chat = await getChatById(params.chatId);
+
+    if (!chat) {
+        redirect(302, '/chat');
+    }
 
     const getMessagesByChatId = async (chatId: string) => {
         try {

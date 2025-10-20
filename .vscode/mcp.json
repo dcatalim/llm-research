@@ -2,28 +2,21 @@
 	"servers": {
 		"inkeepMcp": {
 			"command": "npx",
-			"args": [
-				"-y",
-				"mcp-remote",
-				"https://mcp.inkeep.com/zod/mcp"
-			],
+			"args": ["-y", "mcp-remote", "https://mcp.inkeep.com/zod/mcp"],
 			"type": "stdio"
 		},
 		"jsrepo": {
 			"command": "npx",
-			"args": [
-				"jsrepo",
-				"mcp"
-			],
+			"args": ["jsrepo", "mcp"],
 			"type": "stdio"
 		},
 		"svelte": {
 			"type": "stdio",
 			"command": "npx",
-			"args": [
-				"-y",
-				"@sveltejs/mcp"
-			]
+			"args": ["-y", "@sveltejs/mcp"]
+		},
+		"ai-sdk-5-migration": {
+			"url": "https://ai-sdk-5-migration-mcp-server.vercel.app/api/mcp"
 		}
 	},
 	"inputs": []

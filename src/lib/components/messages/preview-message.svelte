@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { cn } from '$lib/utils';
 	import SparklesIcon from '@lucide/svelte/icons/sparkles';
-	import { Tooltip, TooltipContent, TooltipTrigger } from '$lib/components/ui/tooltip';	
-	import { Button } from "$lib/components/ui/button"	
+	import { Tooltip, TooltipContent, TooltipTrigger } from '$lib/components/ui/tooltip';
+	import { Button } from '$lib/components/ui/button';
 	import PencilEditIcon from '@lucide/svelte/icons/pencil';
-	// import PreviewAttachment from '../preview-attachment.svelte';
+	import PreviewAttachment from '../preview-attachment.svelte';
 	import { Markdown } from '../markdown';
 	import MessageReasoning from '../message-reasoning.svelte';
 	import { fly } from 'svelte/transition';
@@ -32,7 +32,7 @@
 	>
 		{#if message.role === 'assistant'}
 			<div
-				class="bg-background ring-border flex size-8 shrink-0 items-center justify-center rounded-full ring-1"
+				class="flex size-8 shrink-0 items-center justify-center rounded-full bg-background ring-1 ring-border"
 			>
 				<div class="translate-y-px">
 					<SparklesIcon size={14} />
@@ -55,6 +55,14 @@
 					<MessageReasoning {loading} reasoning={part.reasoning} />
 				{:else if type === 'text'}
 					{#if mode === 'view'}
+
+					
+						{#if part.type === 'file' && part.mediaType?.startsWith('image/')}
+							<div class="flex flex-row justify-end gap-2">
+								<PreviewAttachment attachment={part} />
+							</div>
+						{/if}
+
 						<div class="flex flex-row items-start gap-2">
 							<!-- {#if message.role === 'user' && !readonly}
 								<Tooltip>
@@ -77,7 +85,7 @@
 							{/if} -->
 							<div
 								class={cn('flex flex-col gap-4', {
-									'bg-primary text-primary-foreground rounded-xl px-3 py-2': message.role === 'user'
+									'rounded-xl bg-primary px-3 py-2 text-primary-foreground': message.role === 'user'
 								})}
 							>
 								<Markdown md={part.text} />

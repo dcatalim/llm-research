@@ -57,7 +57,6 @@
 					<Password.Input {...props} bind:value={$formData.password} required>
 						<Password.ToggleVisibility />
 					</Password.Input>
-					<Password.Strength />
 				</Password.Root>
 			{/snippet}
 		</Form.Control>

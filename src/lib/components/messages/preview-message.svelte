@@ -56,7 +56,7 @@
 				{:else if type === 'text'}
 					{#if mode === 'view'}
 						<div class="flex flex-row items-start gap-2">
-							{#if message.role === 'user' && !readonly}
+							<!-- {#if message.role === 'user' && !readonly}
 								<Tooltip>
 									<TooltipTrigger>
 										{#snippet child({ props })}
@@ -74,7 +74,7 @@
 									</TooltipTrigger>
 									<TooltipContent>Edit message</TooltipContent>
 								</Tooltip>
-							{/if}
+							{/if} -->
 							<div
 								class={cn('flex flex-col gap-4', {
 									'bg-primary text-primary-foreground rounded-xl px-3 py-2': message.role === 'user'

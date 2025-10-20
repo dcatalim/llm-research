@@ -75,6 +75,7 @@
 	},
 	"dependencies": {
 		"@openrouter/ai-sdk-provider": "^1.2.0",
+		"date-fns": "^4.1.0",
 		"pocketbase": "^0.26.2",
 		"svelte-exmarkdown": "^5.0.2"
 	}

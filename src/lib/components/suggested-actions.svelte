@@ -7,6 +7,8 @@
 
 	let { user, chatClient }: { user: User | undefined; chatClient: Chat } = $props();
 
+
+
 	const suggestedActions = [
 		{
 			title: 'What are the advantages',
@@ -43,9 +45,9 @@
 					if (user) {
 						replaceState(`/chat/${chatClient.id}`, {});
 					}
-					await chatClient.append({
+					await chatClient.sendMessage({
 						role: 'user',
-						content: suggestedAction.action
+						parts: [{ type: 'text', text: suggestedAction.action }]
 					});
 				}}
 				class="h-auto w-full flex-1 items-start justify-start gap-1 rounded-xl border px-4 py-3.5 text-left text-sm sm:flex-col"

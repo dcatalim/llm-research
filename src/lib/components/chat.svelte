@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { Chat } from '@ai-sdk/svelte';
-	import type { Attachment } from 'ai';
 	import { toast } from 'svelte-sonner';
 	import { ChatHistory } from '$lib/hooks/chat-history.svelte';
 	import ChatHeader from './chat-header.svelte';
@@ -29,8 +28,7 @@
 			id: chat?.id,
 			// This way, the client is only recreated when the ID changes, allowing us to fully manage messages
 			// clientside while still SSRing them on initial load or when we navigate to a different chat.
-			initialMessages: untrack(() => initialMessages),
-			sendExtraMessageFields: true,
+			messages: initialMessages,
 			generateId: crypto.randomUUID.bind(crypto),
 			onFinish: async () => {
 				await chatHistory.refetch();
@@ -57,7 +55,15 @@
 		})
 	);
 
-	let attachments = $state<Attachment[]>([]);
+	// Extended FilePart type to include optional name property
+	type FileAttachment = {
+		type: 'file';
+		data: string;
+		mediaType: string;
+		name?: string;
+	};
+
+	let attachments = $state<FileAttachment[]>([]);
 </script>
 
 <div class="bg-background flex h-dvh min-w-0 flex-col">

@@ -7,13 +7,12 @@
 	import * as Avatar from '$lib/components/ui/avatar/index.js';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
 	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
-	import { Button } from '$lib/components/ui/button';
 	import { goto } from '$app/navigation';
 
 	let { user }: { user: { name: string; email: string; avatar: string } } = $props();
 	const sidebar = Sidebar.useSidebar();
 </script>
-{#if user}
+
 <Sidebar.Menu>
 	<Sidebar.MenuItem>
 		<DropdownMenu.Root>
@@ -60,7 +59,10 @@
 				</DropdownMenu.Label>
 				<DropdownMenu.Separator />
 				<DropdownMenu.Group>
-					<DropdownMenu.Item onclick={() => goto('/dashboard/account')} class='hover:cursor-pointer'>
+					<DropdownMenu.Item
+						onclick={() => goto('/dashboard/account')}
+						class="hover:cursor-pointer"
+					>
 						<UserCircleIcon />
 						Account
 					</DropdownMenu.Item>
@@ -74,7 +76,7 @@
 					</DropdownMenu.Item>
 				</DropdownMenu.Group>
 				<DropdownMenu.Separator />
-				<DropdownMenu.Item onclick={() => goto('/logout')} class='hover:cursor-pointer'>
+				<DropdownMenu.Item onclick={() => goto('/logout')} class="hover:cursor-pointer">
 					<LogoutIcon />
 					Log out
 				</DropdownMenu.Item>
@@ -82,4 +84,3 @@
 		</DropdownMenu.Root>
 	</Sidebar.MenuItem>
 </Sidebar.Menu>
-{/if}

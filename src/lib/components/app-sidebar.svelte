@@ -1,72 +1,68 @@
 <script lang="ts">
-	import KeyIcon from '@lucide/svelte/icons/key';
-	import HouseIcon from '@lucide/svelte/icons/house';
-	import InboxIcon from '@lucide/svelte/icons/inbox';
-	import SearchIcon from '@lucide/svelte/icons/search';
-	import SettingsIcon from '@lucide/svelte/icons/settings';
-	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
-	import Logo from './Logo.svelte';
-	import NavUser from './nav-user.svelte';
-	import { getContext } from 'svelte';
+	import { Button } from './ui/button';
+	import {
+		useSidebar,
+		Sidebar,
+		SidebarContent,
+		SidebarFooter,
+		SidebarHeader,
+		SidebarMenu
+	} from './ui/sidebar';
+	import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
+	import { goto } from '$app/navigation';
+	import PlusIcon from '@lucide/svelte/icons/plus';
+	import type { User } from '$lib/pocketbase';
+	import SidebarUserNav from './sidebar-user-nav.svelte';
+	import { SidebarHistory } from './sidebar-history';
 
-	const user = getContext('user');
+	let { user }: { user?: User } = $props();
 
-	// Menu items.
-	const items = [
-		{
-			title: 'Home',
-			url: '#',
-			icon: HouseIcon
-		},
-		{
-			title: 'Models',
-			url: '/dashboard/models',
-			icon: SettingsIcon
-		},
-		{
-			title: 'Keys',
-			url: '/dashboard/keys',
-			icon: KeyIcon
-		}
-		// {
-		// 	title: 'Search',
-		// 	url: '#',
-		// 	icon: SearchIcon
-		// },
-		// {
-		// 	title: 'Settings',
-		// 	url: '#',
-		// 	icon: SettingsIcon
-		// }
-	];
+	const context = useSidebar();
 </script>
 
-<Sidebar.Root>
-	<Sidebar.Content>
-		<Sidebar.Group>
-			<Sidebar.GroupLabel>
-				<Logo />
-			</Sidebar.GroupLabel>
-			<Sidebar.GroupContent>
-				<Sidebar.Menu>
-					{#each items as item (item.title)}
-						<Sidebar.MenuItem>
-							<Sidebar.MenuButton>
-								{#snippet child({ props })}
-									<a href={item.url} {...props}>
-										<item.icon />
-										<span>{item.title}</span>
-									</a>
-								{/snippet}
-							</Sidebar.MenuButton>
-						</Sidebar.MenuItem>
-					{/each}
-				</Sidebar.Menu>
-			</Sidebar.GroupContent>
-		</Sidebar.Group>
-	</Sidebar.Content>
-
-	<Sidebar.Footer>
-		<NavUser {user} />
-	</Sidebar.Footer>
-</Sidebar.Root>
+<Sidebar class="group-data-[side=left]:border-r-0">
+	<SidebarHeader>
+		<SidebarMenu>
+			<div class="flex h-10 flex-row items-center justify-between md:h-[34px]">
+				<a
+					href="/"
+					onclick={() => {
+						context.setOpenMobile(false);
+					}}
+					class="flex flex-row items-center gap-3"
+				>
+					<span class="hover:bg-muted cursor-pointer rounded-md px-2 text-lg font-semibold">
+						Chatbot
+					</span>
+				</a>
+				<Tooltip>
+					<TooltipTrigger>
+						{#snippet child({ props })}
+							<Button
+								{...props}
+								variant="ghost"
+								type="button"
+								class="h-fit p-2"
+								onclick={() => {
+									context.setOpenMobile(false);
+									goto('/', { invalidateAll: true });
+								}}
+							>
+								<PlusIcon />
+							</Button>
+						{/snippet}
+					</TooltipTrigger>
+					<TooltipContent align="end">New Chat</TooltipContent>
+				</Tooltip>
+			</div>
+		</SidebarMenu>
+	</SidebarHeader>
+	<SidebarContent>
+		<SidebarHistory {user} />
+	</SidebarContent>
+	<SidebarFooter>
+		{#if user}
+			<SidebarUserNav {user} />
+		{/if}
+	</SidebarFooter>
+</Sidebar>

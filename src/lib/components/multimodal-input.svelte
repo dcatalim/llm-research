@@ -6,7 +6,6 @@
 	import { onMount } from 'svelte';
 	import { LocalStorage } from '$lib/hooks/local-storage.svelte';
 	import { innerWidth } from 'svelte/reactivity/window';
-	import type { Attachment } from 'ai';
 	import { toast } from 'svelte-sonner';
 	import { Button } from "$lib/components/ui/button"
 	import PaperclipIcon from '@lucide/svelte/icons/paperclip';
@@ -16,13 +15,21 @@
 	import { replaceState } from '$app/navigation';
 	import type { User } from '$lib/pocketbase';
 
+	// Extended FilePart type to include optional name property
+	type FileAttachment = {
+		type: 'file';
+		data: string;
+		mediaType: string;
+		name?: string;
+	};
+
 	let {
 		attachments = $bindable(),
 		user,
 		chatClient,
 		class: c
 	}: {
-		attachments: Attachment[];
+		attachments: FileAttachment[];
 		user: User | undefined;
 		chatClient: Chat;
 		class?: string;
@@ -49,8 +56,10 @@
 		}
 	};
 
+	let input = $state('');
+
 	function setInput(value: string) {
-		chatClient.input = value;
+		input = value;
 		adjustHeight();
 	}
 
@@ -59,10 +68,20 @@
 			replaceState(`/chat/${chatClient.id}`, {});
 		}
 
-		await chatClient.handleSubmit(event, {
-			experimental_attachments: attachments
+		// Convert FileParts to the format expected by sendMessage
+		const files = attachments.map(part => ({
+			type: 'file' as const,
+			filename: part.name || 'file',
+			mediaType: part.mediaType,
+			url: part.data
+		}));
+
+		await chatClient.sendMessage({
+			text: input,
+			files: files.length > 0 ? files : undefined
 		});
 
+		input = '';
 		attachments = [];
 		resetHeight();
 
@@ -71,7 +90,7 @@
 		}
 	}
 
-	async function uploadFile(file: File) {
+	async function uploadFile(file: File): Promise<FileAttachment | undefined> {
 		const formData = new FormData();
 		formData.append('file', file);
 
@@ -86,9 +105,10 @@
 				const { url, pathname, contentType } = data;
 
 				return {
-					url,
-					name: pathname,
-					contentType: contentType
+					type: 'file',
+					data: url,
+					mediaType: contentType,
+					name: pathname
 				};
 			}
 			const { message } = await response.json();
@@ -122,13 +142,13 @@
 	}
 
 	onMount(() => {
-		chatClient.input = storedInput.value;
+		input = storedInput.value;
 		adjustHeight();
 		mounted = true;
 	});
 
 	$effect.pre(() => {
-		storedInput.value = chatClient.input;
+		storedInput.value = input;
 	});
 </script>
 
@@ -168,7 +188,7 @@
 	<Textarea
 		bind:ref={textareaRef}
 		placeholder="Send a message..."
-		bind:value={() => chatClient.input, setInput}
+		bind:value={() => input, setInput}
 		class={cn(
 			'bg-muted max-h-[calc(75dvh)] min-h-[24px] resize-none overflow-hidden rounded-2xl pb-10 !text-base dark:border-zinc-700',
 			c
@@ -235,7 +255,7 @@
 			event.preventDefault();
 			submitForm();
 		}}
-		disabled={chatClient.input.length === 0 || uploadQueue.length > 0}
+		disabled={input.length === 0 || uploadQueue.length > 0}
 	>
 		<ArrowUpIcon size={14} />
 	</Button>

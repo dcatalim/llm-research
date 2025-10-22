@@ -20,6 +20,8 @@ export interface Chat {
 	title: string;
 	userId: string;
 	visibility: 'public' | 'private';
+	created: Date;
+	updated: Date;
 }
 
 export interface Message {
@@ -28,14 +30,21 @@ export interface Message {
 	role: string;
 	parts: Array<string>;
 	attachments: Array<string>;
+	created: Date;
+	updated: Date;
 }
 
 export interface Document {
 	id: string;
-	title: string;
-	content: string;
-	kind: string;
+	type: "file" | "image";
+	filename: string;
+	image: string;
+	mediaType: string;
 	userId: string;
+	created: Date;
+	updated: Date;
+
+
 }
 
 export interface TypedPocketBase extends PocketBase {
@@ -51,5 +60,8 @@ export const getImageURL = (
 	fileName: string,
 	size = '100x100'
 ) => {
+	if (size === 'full') {
+		return `${PUBLIC_POCKETBASE_URL}/api/files/${collectionId}/${recordId}/${fileName}`;
+	}
 	return `${PUBLIC_POCKETBASE_URL}/api/files/${collectionId}/${recordId}/${fileName}?thumb=${size}`;
 };

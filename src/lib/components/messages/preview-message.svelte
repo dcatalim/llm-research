@@ -41,28 +41,21 @@
 		{/if}
 
 		<div class="flex w-full flex-col gap-4">
-			<!-- {#if message.experimental_attachments && message.experimental_attachments.length > 0}
-				<div class="flex flex-row justify-end gap-2">
-					{#each message.experimental_attachments as attachment (attachment.url)}
-						<PreviewAttachment {attachment} />
-					{/each}
-				</div>
-			{/if} -->
-
 			{#each message.parts as part, i (`${message.id}-${i}`)}
 				{@const { type } = part}
+
+				{#if type === 'file'}
+					<div class="flex flex-row justify-end gap-2">
+						<PreviewAttachment file={part} />
+					</div>
+				{/if}
+
 				{#if type === 'reasoning'}
-					<MessageReasoning {loading} reasoning={part.reasoning} />
+					{#key `${message.id}-${i}`}
+						<MessageReasoning loading={part.state == 'streaming'} reasoning={part.text} />
+					{/key}
 				{:else if type === 'text'}
 					{#if mode === 'view'}
-
-					
-						{#if part.type === 'file' && part.mediaType?.startsWith('image/')}
-							<div class="flex flex-row justify-end gap-2">
-								<PreviewAttachment attachment={part} />
-							</div>
-						{/if}
-
 						<div class="flex flex-row items-start gap-2">
 							<!-- {#if message.role === 'user' && !readonly}
 								<Tooltip>

@@ -6,8 +6,11 @@
 	import { cubicInOut } from 'svelte/easing';
 	import { getLock } from '$lib/hooks/lock';
 	import { tick } from 'svelte';
+
 	let { loading, reasoning }: { loading: boolean; reasoning: string } = $props();
+
 	let expanded = $state(false);
+
 	const scrollLock = getLock('messages-scroll');
 
 	function lockScrolling() {
@@ -19,6 +22,7 @@
 			scrollLock.locked = false;
 		});
 	}
+
 </script>
 
 <div class="flex flex-col">
@@ -32,16 +36,15 @@
 	{:else}
 		<div class="flex flex-row items-center gap-2">
 			<div class="font-medium">Reasoned for a few seconds</div>
-			<!-- svelte-ignore a11y_click_events_have_key_events -->
-			<!-- svelte-ignore a11y_no_static_element_interactions -->
-			<div
+			<button
 				class="cursor-pointer"
+				class:rotate-180={expanded}
 				onclick={() => {
 					expanded = !expanded;
 				}}
 			>
 				<ChevronDownIcon />
-			</div>
+			</button>
 		</div>
 	{/if}
 

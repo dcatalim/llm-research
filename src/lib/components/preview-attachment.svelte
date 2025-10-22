@@ -1,32 +1,36 @@
 <script lang="ts">
-	import type { FilePart } from 'ai';
+	import type { FileUIPart } from 'ai';
 	import LoaderIcon from '@lucide/svelte/icons/loader';
 
 	let {
-		attachment,
+		file,
 		uploading = false
 	}: {
-		attachment: FilePart;
+		file: FileUIPart;
 		uploading?: boolean;
 	} = $props();
-
-	$inspect(attachment)
-
-	const { name, url, contentType } = $derived(attachment);
+	
+	const { type, mediaType, filename, url } = $derived(file);
+	
+	const fileExtension = $derived(() => {
+		if (!filename) return '';
+		const parts = filename.split('.');
+		return parts.length > 1 ? parts[parts.length - 1].toUpperCase() : '';
+	});
 </script>
 
 <div class="flex flex-col gap-2">
 	<div
 		class="relative flex aspect-video h-16 w-20 flex-col items-center justify-center rounded-md bg-muted"
 	>
-		{#if contentType && contentType.startsWith('image')}
+		{#if mediaType && mediaType.startsWith('image')}
 			<img
 				src={url}
-				alt={name ?? 'An image attachment'}
+				alt={filename ?? 'An image attachment'}
 				class="size-full rounded-md object-cover"
 			/>
 		{:else}
-			<div></div>
+			<div class="max-w-16 truncate text-sm">{fileExtension()}</div>
 		{/if}
 
 		{#if uploading}
@@ -35,5 +39,5 @@
 			</div>
 		{/if}
 	</div>
-	<div class="max-w-16 truncate text-xs text-zinc-500">{name}</div>
+	<div class="max-w-16 truncate text-xs text-zinc-500">{filename}</div>
 </div>

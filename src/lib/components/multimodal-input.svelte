@@ -13,23 +13,16 @@
 	import ArrowUpIcon from '@lucide/svelte/icons/arrow-up';
 	import SuggestedActions from './suggested-actions.svelte';
 	import { replaceState } from '$app/navigation';
-	import type { User } from '$lib/pocketbase';
-
-	// Extended FilePart type to include optional name property
-	type FileAttachment = {
-		type: 'file';
-		data: string;
-		mediaType: string;
-		name?: string;
-	};
+	import { getImageURL, type User } from '$lib/pocketbase';
+	import type { FileUIPart } from 'ai';
 
 	let {
-		attachments = $bindable(),
+		files = $bindable(),
 		user,
 		chatClient,
 		class: c
 	}: {
-		attachments: FileAttachment[];
+		files: FileUIPart[];
 		user: User | undefined;
 		chatClient: Chat;
 		class?: string;
@@ -68,13 +61,15 @@
 			replaceState(`/chat/${chatClient.id}`, {});
 		}
 
-		// Convert FileParts to the format expected by sendMessage
-		const files = attachments.map((part) => ({
-			type: 'file' as const,
-			filename: part.name || 'file',
-			mediaType: part.mediaType,
-			url: part.data
-		}));
+		// // Convert FileParts to the format expected by sendMessage
+		// const files = attachments.map((part) => ({
+		// 	type: 'file' as const,
+		// 	filename: part.filename || 'file',
+		// 	mediaType: part.mediaType,
+		// 	url: getImageURL('documents', part.id, part.image ?? '', "full")
+		// }));
+		// console.log('Attachments to send:', attachments);
+		// console.log('Files to send:', files);
 
 		await chatClient.sendMessage({
 			text: input,
@@ -82,7 +77,7 @@
 		});
 
 		input = '';
-		attachments = [];
+		files = [];
 		resetHeight();
 
 		if (innerWidth.current && innerWidth.current > 768) {
@@ -90,7 +85,7 @@
 		}
 	}
 
-	async function uploadFile(file: File): Promise<FileAttachment | undefined> {
+	async function uploadFile(file: File): Promise<FileUIPart | undefined> {
 		const formData = new FormData();
 		formData.append('file', file);
 
@@ -102,15 +97,14 @@
 
 			if (response.ok) {
 				const data = await response.json();
-				console.log('File Uploaded', data);
-				const { id, url, pathname, contentType } = data;
+				// console.log('File Uploaded', data);
+				const { id, image, filename, type, mediaType } = data;
 
 				return {
-					type: 'file',
-					id: id,
-					url: url,
-					contentType: contentType,
-					name: pathname
+					url: getImageURL('documents', id, image, 'full'),
+					filename: filename,
+					mediaType,
+					type
 				};
 			}
 			const { message } = await response.json();
@@ -125,17 +119,19 @@
 			currentTarget: EventTarget & HTMLInputElement;
 		}
 	) {
-		const files = Array.from(event.currentTarget.files || []);
-		uploadQueue = files.map((file) => file.name);
+		event.preventDefault()
+
+		const attachments = Array.from(event.currentTarget.files || []);
+		uploadQueue = attachments.map((file) => file.name);
 
 		try {
-			const uploadPromises = files.map((file) => uploadFile(file));
+			const uploadPromises = attachments.map((file) => uploadFile(file));
 			const uploadedAttachments = await Promise.all(uploadPromises);
 			const successfullyUploadedAttachments = uploadedAttachments.filter(
 				(attachment) => attachment !== undefined
 			);
 
-			attachments = [...attachments, ...successfullyUploadedAttachments];
+			files = [...files, ...successfullyUploadedAttachments];
 		} catch (error) {
 			console.error('Error uploading files!', error);
 		} finally {
@@ -155,7 +151,7 @@
 </script>
 
 <div class="relative flex w-full flex-col gap-4">
-	{#if mounted && chatClient.messages.length === 0 && attachments.length === 0 && uploadQueue.length === 0}
+	{#if mounted && chatClient.messages.length === 0 && files.length === 0 && uploadQueue.length === 0}
 		<SuggestedActions {user} {chatClient} />
 	{/if}
 
@@ -166,21 +162,22 @@
 		multiple
 		onchange={handleFileChange}
 		tabIndex={-1}
-		accept="image/png, image/jpeg"
+		disabled={loading}
 	/>
 
-	{#if attachments.length > 0 || uploadQueue.length > 0}
+	{#if files.length > 0 || uploadQueue.length > 0}
 		<div class="flex flex-row items-end gap-2 overflow-x-scroll">
-			{#each attachments as attachment (attachment.url)}
-				<PreviewAttachment {attachment} />
+			{#each files as file (file.url)}
+				<PreviewAttachment {file} />
 			{/each}
 
 			{#each uploadQueue as filename (filename)}
 				<PreviewAttachment
-					attachment={{
+					file={{
 						url: '',
-						name: filename,
-						contentType: ''
+						filename,
+						mediaType: '',
+						type: 'file'
 					}}
 					uploading
 				/>
@@ -209,6 +206,7 @@
 				}
 			}
 		}}
+		disabled={loading}
 	/>
 
 	<div class="absolute bottom-0 flex w-fit flex-row justify-start p-2">

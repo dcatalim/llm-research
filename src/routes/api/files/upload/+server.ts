@@ -9,8 +9,8 @@ const FileSchema = z.object({
 			message: 'File size should be less than 5MB'
 		})
 		// Update the file type based on the kind of files you want to accept
-		.refine((file) => ['image/jpeg', 'image/png'].includes(file.type), {
-			message: 'File type should be JPEG or PNG'
+		.refine((file) => ['image/jpeg', 'image/png', 'text/plain'].includes(file.type), {
+			message: 'File type should be TXT, JPEG or PNG'
 		})
 });
 
@@ -31,6 +31,8 @@ export async function POST({ request, locals }) {
 			return error(400, 'No file uploaded');
 		}
 
+		console.log('Uploading file:', file.name, file.type, file.size);
+
 		const validatedFile = FileSchema.safeParse({ file });
 
 		if (!validatedFile.success) {
@@ -41,26 +43,22 @@ export async function POST({ request, locals }) {
 
 		// Get filename from formData since Blob doesn't have name property
 		const filename = file.name;
-		const fileBuffer = await file.arrayBuffer();
-		const fileBlob = new Blob([fileBuffer], { type: file.type });
+		// const fileBuffer = await file.arrayBuffer();
+		// const fileBlob = new Blob([fileBuffer], { type: file.type });
 
 		try {
 			const data = {
-				title: filename,
-				kind: 'image',
-				content: fileBlob,
+				type: 'file',
+				filename: filename,
+				image: file,
+				mediaType: file.type,
+				data: undefined, // Use data to store non-image files
 				userId: locals.user?.id
 			};
 
 			const record = await locals.pb.collection('documents').create(data);
 
-			const result = {
-				url: getImageURL("documents", record.id, record.content),
-				pathname: filename,
-				contentType: record.kind
-			};
-
-			return Response.json(result);
+			return Response.json(record);
 		} catch (e) {
 			console.error(e);
 			return error(500, 'Upload failed');

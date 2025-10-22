@@ -57,8 +57,8 @@ export async function POST({ request, locals }) {
 					chatId: chatId,
 					role: message.role,
 					parts: message.parts,
-					attachments: message.experimental_attachments ?? []
-				};
+					metadata: message.metadata ?? ''
+				}
 
 				await locals.pb.collection('messages').create(data);
 			}
@@ -92,8 +92,10 @@ export async function POST({ request, locals }) {
 		});
 
 		const result = streamText({
-			model: google('gemini-2.5-flash'),
-			messages: convertToModelMessages(messages)
+			// model: google('gemini-2.5-pro'),
+			model: openrouter.chat("openrouter/andromeda-alpha"),
+			maxOutputTokens: 1024,
+			messages: convertToModelMessages(messages),
 		});
 
 		return result.toUIMessageStreamResponse({

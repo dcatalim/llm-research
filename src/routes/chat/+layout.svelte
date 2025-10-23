@@ -1,14 +1,19 @@
 <script lang="ts">
 	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
 	import AppSidebar from '$lib/components/app-sidebar.svelte';
-    import type { LayoutProps } from './$types';
+	import type { LayoutProps } from './$types';
 	import { ChatHistory } from '$lib/hooks/chat-history.svelte.js';
+	import { createAIContext } from '@ai-sdk/svelte';
 
-    let { data, children }: LayoutProps = $props();
+	let { data, children }: LayoutProps = $props();
 
 	const chatHistory = new ChatHistory(data.chats);
 	chatHistory.setContext();
 	// data.selectedChatModel.setContext();
+
+	createAIContext();
+	// all hooks created after this or in components that are children of this component
+	// will have synchronized state
 </script>
 
 <Sidebar.Provider open={!data.sidebarCollapsed}>

@@ -96,12 +96,13 @@
 			});
 
 			if (response.ok) {
-				const data = await response.json();
-				// console.log('File Uploaded', data);
-				const { id, image, filename, type, mediaType } = data;
+				const result = await response.json();
+				// console.log('File Uploaded', result);
+
+				const { id, data, filename, type, mediaType } = result;
 
 				return {
-					url: getImageURL('documents', id, image, 'full'),
+					url: getImageURL('documents', id, data, 'full'),
 					filename: filename,
 					mediaType,
 					type
@@ -119,7 +120,7 @@
 			currentTarget: EventTarget & HTMLInputElement;
 		}
 	) {
-		event.preventDefault()
+		event.preventDefault();
 
 		const attachments = Array.from(event.currentTarget.files || []);
 		uploadQueue = attachments.map((file) => file.name);
@@ -206,7 +207,6 @@
 				}
 			}
 		}}
-		disabled={loading}
 	/>
 
 	<div class="absolute bottom-0 flex w-fit flex-row justify-start p-2">
@@ -241,7 +241,7 @@
 		class="h-fit rounded-full border p-1.5 dark:border-zinc-600"
 		onclick={(event) => {
 			event.preventDefault();
-			stop();
+			chatClient.stop();
 			chatClient.messages = chatClient.messages;
 		}}
 	>

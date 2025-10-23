@@ -1,4 +1,3 @@
-import { getImageURL } from '$lib/pocketbase.js';
 import { error } from '@sveltejs/kit';
 import { z } from 'zod/v4';
 
@@ -50,9 +49,8 @@ export async function POST({ request, locals }) {
 			const data = {
 				type: 'file',
 				filename: filename,
-				image: file,
+				data: file,
 				mediaType: file.type,
-				data: undefined, // Use data to store non-image files
 				userId: locals.user?.id
 			};
 

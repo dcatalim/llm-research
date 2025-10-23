@@ -38,8 +38,8 @@ export interface Document {
 	id: string;
 	type: "file" | "image";
 	filename: string;
-	image: string;
 	mediaType: string;
+	data: string;
 	userId: string;
 	created: Date;
 	updated: Date;

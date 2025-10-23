@@ -93,7 +93,7 @@ export async function POST({ request, locals }) {
 
 		const result = streamText({
 			// model: google('gemini-2.5-pro'),
-			model: openrouter.chat("openrouter/andromeda-alpha"),
+			model: openrouter.chat("meta-llama/llama-3.3-8b-instruct:free"),
 			maxOutputTokens: 1024,
 			messages: convertToModelMessages(messages),
 		});

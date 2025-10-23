@@ -34,6 +34,7 @@
 				await chatHistory.refetch();
 			},
 			onError: (error) => {
+				let message = 'An error occurred while generating the response.';
 				try {
 					// If there's an API error, its message will be JSON-formatted
 					const jsonError = JSON.parse(error.message);
@@ -44,13 +45,20 @@
 						'message' in jsonError &&
 						typeof jsonError.message === 'string'
 					) {
-						toast.error(jsonError.message);
+						message = jsonError.message;
 					} else {
-						toast.error(error.message);
+						message = error.message;
 					}
 				} catch {
-					toast.error(error.message);
+					message = error.message;
 				}
+
+				toast.error(message, {
+					action: {
+						label: 'Retry',
+						onClick: () => chatClient.regenerate()
+					}
+				});
 			}
 		})
 	);
@@ -58,7 +66,7 @@
 	let files = $state<FileUIPart[]>([]);
 </script>
 
-<div class="bg-background flex h-dvh min-w-0 flex-col">
+<div class="flex h-dvh min-w-0 flex-col bg-background">
 	<ChatHeader {user} {chat} {readonly} />
 	<Messages
 		{readonly}
@@ -66,7 +74,7 @@
 		messages={chatClient.messages}
 	/>
 
-	<form class="bg-background mx-auto flex w-full gap-2 px-4 pb-4 md:max-w-3xl md:pb-6">
+	<form class="mx-auto flex w-full gap-2 bg-background px-4 pb-4 md:max-w-3xl md:pb-6">
 		{#if !readonly}
 			<MultimodalInput {files} {user} {chatClient} class="flex-1" />
 		{/if}

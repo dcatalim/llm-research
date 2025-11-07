@@ -5,8 +5,8 @@
 
 	let { data }: PageProps = $props();
 
-	let updatedChat = data.chat ?? {};
-	updatedChat.id = data.chat?.uuid; // Ensure chat has 'id' field for Chat component
+	// let updatedChat = data.chat ?? {};
+	// updatedChat.id = data.chat?.uuid; // Ensure chat has 'id' field for Chat component
 </script>
 
 <Chat

@@ -19,6 +19,7 @@
 	import ChevronsUpDownIcon from '@lucide/svelte/icons/chevrons-up-down';
 	import { cn } from '$lib/utils.js';
 	import * as Select from '$lib/components/ui/select';
+	import { goto } from '$app/navigation';
 
 	let { data }: { data: { form: SuperValidated<Infer<ModelConfigurationSchema>>, apiKeys: any[] } } = $props();
 
@@ -29,7 +30,7 @@
 			if (form.message) {
 				if (form.valid) {
 					toast.success(form.message);
-					// goto('/dashboard/models');
+					goto('/dashboard/models');
 				} else {
 					toast.error(form.message);
 					console.error('Form submission error:', form.errors);
@@ -141,6 +142,23 @@
 					</Form.Control>
 					<Form.FieldErrors />
 				</Form.Field>
+
+				<Form.Field {form} name="instructions">
+					<Form.Control>
+						{#snippet children({ props })}
+							<Form.Label>Instructions</Form.Label>
+							<Textarea
+								{...props}
+								placeholder="Explain the purpose of this model to testers..."
+								class="min-h-32 bg-background"
+								bind:value={$formData.instructions}
+							/>
+						{/snippet}
+					</Form.Control>
+					<Form.FieldErrors />
+				</Form.Field>
+
+				<!-- Hidden provider field -->
 				<input type="hidden" name="provider" bind:value={$formData.provider} />
 
 				<Form.Field {form} name="version">

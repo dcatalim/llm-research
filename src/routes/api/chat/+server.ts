@@ -15,12 +15,15 @@ const openrouter = createOpenRouter({
 	apiKey: OPENROUTER_API_KEY
 });
 
-export async function POST({ request, locals }) {
+export async function POST({ request, locals, cookies }) {
 	const { id, messages }: { id: string; messages: UIMessage[] } = await request.json();
 
-	if (!locals.pb.authStore.isValid) {
-		error(401, 'Unauthorized');
-	}
+	const selectedChatModel = cookies.get('selected-model');
+	console.log('Selected Chat Model:', selectedChatModel);
+
+	// if (!locals.pb.authStore.isValid) {
+	// 	error(401, 'Unauthorized');
+	// }
 
 	const userMessage = getMostRecentUserMessage(messages);
 
@@ -28,12 +31,12 @@ export async function POST({ request, locals }) {
 		error(400, 'No user message found');
 	}
 
-	const saveChat = async (id: string, userId: string, title: string) => {
+	const saveChat = async (id: string, title: string) => {
 		try {
 			const data = {
 				uuid: id,
 				title: title,
-				userId: userId
+				userId: locals.user?.id ?? undefined
 			};
 
 			const record = await locals.pb.collection('chats').create(data);
@@ -58,7 +61,7 @@ export async function POST({ request, locals }) {
 					role: message.role,
 					parts: message.parts,
 					metadata: message.metadata ?? ''
-				}
+				};
 
 				await locals.pb.collection('messages').create(data);
 			}
@@ -67,44 +70,43 @@ export async function POST({ request, locals }) {
 		}
 	};
 
-	if (locals.user) {
-		let chat: Chat | undefined;
-		try {
-			const chatResult = await locals.pb.collection('chats').getFirstListItem<Chat>(`uuid="${id}"`);
-			chat = chatResult;
-		} catch (err) {
-			chat = undefined;
-			// console.error('Error fetching chat:', err);
-		}
-
-		if (!chat) {
-			const title = await generateTitleFromUserMessage({ message: userMessage });
-			chat = (await saveChat(id, locals.user.id, title)) as Chat;
-		}
-
-		if (chat?.userId !== locals.user?.id) {
-			error(403, 'Forbidden');
-		}
-
-		saveMessages({
-			chatId: chat.id,
-			messages: [userMessage]
-		});
-
-		const result = streamText({
-			// model: google('gemini-2.5-pro'),
-			model: openrouter.chat("meta-llama/llama-3.3-8b-instruct:free"),
-			maxOutputTokens: 1024,
-			messages: convertToModelMessages(messages),
-		});
-
-		return result.toUIMessageStreamResponse({
-			originalMessages: messages, // IMPORTANT: Required to prevent duplicate messages
-			generateMessageId: () => generateId(), // IMPORTANT: Required for proper message ID generation
-			onFinish: ({ messages, responseMessage }) => {
-				// responseMessage contains just the generated message in UIMessage format
-				saveMessages({ chatId: chat.id, messages: [responseMessage] });
-			}
-		});
+	let chat: Chat | undefined;
+	try {
+		const chatResult = await locals.pb.collection('chats').getFirstListItem<Chat>(`uuid="${id}"`);
+		chat = chatResult;
+	} catch (err) {
+		chat = undefined;
+		// console.error('Error fetching chat:', err);
 	}
+
+	if (!chat) {
+		const title = await generateTitleFromUserMessage({ message: userMessage });
+		chat = (await saveChat(id, title)) as Chat;
+	}
+
+	// TODO
+	// if (chat?.userId !== locals.user?.id && chat?.userId != undefined) {
+	// 	error(403, 'Forbidden');
+	// }
+
+	saveMessages({
+		chatId: chat.id,
+		messages: [userMessage]
+	});
+
+	const result = streamText({
+		// model: google('gemini-2.5-pro'),
+		model: openrouter.chat('meta-llama/llama-3.3-8b-instruct:free'),
+		maxOutputTokens: 1024,
+		messages: convertToModelMessages(messages)
+	});
+
+	return result.toUIMessageStreamResponse({
+		originalMessages: messages, // IMPORTANT: Required to prevent duplicate messages
+		generateMessageId: () => generateId(), // IMPORTANT: Required for proper message ID generation
+		onFinish: ({ messages, responseMessage }) => {
+			// responseMessage contains just the generated message in UIMessage format
+			saveMessages({ chatId: chat.id, messages: [responseMessage] });
+		}
+	});
 }

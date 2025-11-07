@@ -11,7 +11,7 @@
 	let {
 		user,
 		chat,
-		readonly
+		readonly,
 	}: {
 		user: User | undefined;
 		chat: Chat | undefined;
@@ -58,6 +58,6 @@
 	{/if}
 
 	{#if !user}
-		<Button href="/signin" class="order-5 px-2 py-1.5 md:h-[34px]">Sign In</Button>
+		<!-- <Button href="/signin" class="order-5 px-2 py-1.5 md:h-[34px]">Sign In</Button> -->
 	{/if}
 </header>

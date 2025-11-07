@@ -13,12 +13,14 @@
 		user,
 		chat,
 		readonly,
-		initialMessages
+		initialMessages,
+		model
 	}: {
 		user: User | undefined;
 		chat: DbChat | undefined;
 		initialMessages: UIMessage[];
 		readonly: boolean;
+		model: any;
 	} = $props();
 
 	const chatHistory = ChatHistory.fromContext();
@@ -72,6 +74,7 @@
 		{readonly}
 		loading={chatClient.status === 'streaming' || chatClient.status === 'submitted'}
 		messages={chatClient.messages}
+		{model}
 	/>
 
 	<form class="mx-auto flex w-full gap-2 bg-background px-4 pb-4 md:max-w-3xl md:pb-6">

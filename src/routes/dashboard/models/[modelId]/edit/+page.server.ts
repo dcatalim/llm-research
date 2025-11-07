@@ -7,8 +7,13 @@ import { message } from 'sveltekit-superforms';
 import type { Actions } from '@sveltejs/kit';
 import { invalidateAll } from '$app/navigation';
 import { serializeNonPOJOs } from '$lib/utils';
+import { redirect } from '@sveltejs/kit';
 
 export const load = (async ({ locals, params }) => {
+	if (!locals.pb.authStore.isValid) {
+		throw redirect(302, '/login');
+	}
+
 	const modelId = params.modelId;
 
 	const getModelbyId = async (modelId: string) => {
@@ -61,6 +66,7 @@ export const actions: Actions = {
 		try {
 			const data = {
 				name: form.data.name,
+				instructions: form.data.instructions,
 				provider: form.data.provider,
 				version: form.data.version,
 				systemPrompt: form.data.systemPrompt,

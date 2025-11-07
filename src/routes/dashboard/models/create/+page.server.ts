@@ -41,6 +41,7 @@ export const actions: Actions = {
 		try {
 			const data = {
 				name: form.data.name,
+				instructions: form.data.instructions,
 				provider: form.data.provider,
 				version: form.data.version,
 				systemPrompt: form.data.systemPrompt,

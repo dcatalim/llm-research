@@ -2,7 +2,8 @@ import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 
 export const load = (async ({ locals, params }) => {
-	const getChatById = async (chatId: string) => {
+
+    const getChatById = async (chatId: string) => {
 		try {
 			const chat = await locals.pb.collection('chats').getFirstListItem(`uuid="${chatId}"`);
 

@@ -3,7 +3,6 @@
 	import { Button } from '$lib/components/ui/button';
 	import Plus from '@lucide/svelte/icons/plus';
 	import { Spinner } from '$lib/components/ui/spinner/index.js';
-	import * as Card from '$lib/components/ui/card';
 	import ModelBox from './model-box.svelte';
 	import NoModelsFound from './no-models-found.svelte';
 	let { data }: PageProps = $props();

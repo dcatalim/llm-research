@@ -12,11 +12,13 @@
 	let {
 		readonly,
 		loading,
-		messages
+		messages,
+		model
 	}: {
 		readonly: boolean;
 		loading: boolean;
 		messages: UIMessage[];
+		model: any;
 	} = $props();
 
 	let mounted = $state(false);
@@ -47,7 +49,7 @@
 
 <div bind:this={containerRef} class="flex min-w-0 flex-1 flex-col gap-6 overflow-y-scroll pt-4">
 	{#if mounted && messages.length === 0}
-		<Overview />
+		<Overview {model} />
 	{/if}
 
 	{#each messages as message (message.id)}

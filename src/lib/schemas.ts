@@ -39,7 +39,8 @@ export const modelConfigurationSchema = z.object({
 	maxTokens: z.number().default(2048),
 	topP: z.number().default(0.9),
 	frequencyPenalty: z.number().default(0),
-	api_key: z.string().nonempty()
+	api_key: z.string().nonempty(),
+	instructions: z.string().nonempty()
 });
 export type ModelConfigurationSchema = typeof modelConfigurationSchema;
 

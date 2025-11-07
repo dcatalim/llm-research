@@ -6,6 +6,7 @@ export async function load({ parent, fetch }) {
 	if (data.user) {
 		chats = fetch('/api/history').then((res) => res.json());
 	}
+
 	return {
 		chats,
 		...data

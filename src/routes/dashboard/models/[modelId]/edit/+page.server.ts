@@ -64,19 +64,28 @@ export const actions: Actions = {
 		}
 
 		try {
+			// const data = {
+			// 	name: form.data.name,
+			// 	instructions: form.data.instructions,
+			// 	provider: form.data.provider,
+			// 	version: form.data.version,
+			// 	systemPrompt: form.data.systemPrompt,
+			// 	temperature: form.data.temperature,
+			// 	maxTokens: form.data.maxTokens,
+			// 	topP: form.data.topP,
+			// 	frequencyPenalty: form.data.frequencyPenalty,
+			// 	suggestedMessages: form.data.suggestedMessages,
+			// 	apiKey: form.data.apiKey,
+			// 	creator: locals.user?.id
+			// };
+
 			const data = {
-				name: form.data.name,
-				instructions: form.data.instructions,
-				provider: form.data.provider,
-				version: form.data.version,
-				systemPrompt: form.data.systemPrompt,
-				temperature: form.data.temperature,
-				maxTokens: form.data.maxTokens,
-				topP: form.data.topP,
-				frequencyPenalty: form.data.frequencyPenalty,
+				...form.data,
+				provider: 'openrouter',
 				creator: locals.user?.id
 			};
 
+			console.log(data)
 			const record = await locals.pb.collection('models').update(modelId, data);
 			return message(form, 'Model successfully updated!');
 		} catch (err) {

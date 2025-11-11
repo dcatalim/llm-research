@@ -40,16 +40,8 @@ export const actions: Actions = {
 
 		try {
 			const data = {
-				name: form.data.name,
-				instructions: form.data.instructions,
-				provider: form.data.provider,
-				version: form.data.version,
-				systemPrompt: form.data.systemPrompt,
-				temperature: form.data.temperature,
-				maxTokens: form.data.maxTokens,
-				topP: form.data.topP,
-				frequencyPenalty: form.data.frequencyPenalty,
-				api_key: form.data.api_key,
+				...form.data,
+				provider: 'openrouter',
 				creator: locals.user?.id
 			};
 

@@ -26,11 +26,12 @@
 				{/snippet}
 			</CopyButton>
 		</Item.Title>
-		<Item.Description>{model.provider}:{model.version}</Item.Description>
+		<Item.Description>{model.version}</Item.Description>
 	</Item.Content>
 	<Item.Actions>
-		<Button href={`/dashboard/models/${model.id}/edit`} variant="outline" size="sm">Edit</Button>
-		<Button size="sm" onclick={() => (showDeleteDialog = true)} disabled={isDeleting}>
+		<Button href={`/dashboard/models/${model.id}`} variant="outline" size="sm">Analytics</Button>
+		<Button href={`/dashboard/models/${model.id}/edit`} variant="default" size="sm">Edit</Button>
+		<Button size="sm" variant="destructive" onclick={() => (showDeleteDialog = true)} disabled={isDeleting}>
 			<Trash_2 />
 		</Button>
 	</Item.Actions>

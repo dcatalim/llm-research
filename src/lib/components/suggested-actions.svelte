@@ -5,36 +5,37 @@
 	import { replaceState } from '$app/navigation';
 	import type { User } from '$lib/pocketbase';
 
-	let { user, chatClient }: { user: User | undefined; chatClient: Chat } = $props();
+	let { user, chatClient, model }: { user: User | undefined; chatClient: Chat, model: any} = $props();
 
 
 
-	const suggestedActions = [
-		{
-			title: 'What are the advantages',
-			label: 'of using SvelteKit?',
-			action: 'What are the advantages of using SvelteKit?'
-		},
-		{
-			title: 'Write code to',
-			label: `demonstrate djikstra's algorithm`,
-			action: `Write code to demonstrate djikstra's algorithm`
-		},
-		{
-			title: 'Help me write an essay',
-			label: `about silicon valley`,
-			action: `Help me write an essay about silicon valley`
-		},
-		{
-			title: 'What is the weather like',
-			label: 'in San Francisco?',
-			action: 'What is the weather like in San Francisco?'
-		}
-	];
+	// const suggestedActions = [
+	// 	{
+	// 		title: 'What are the advantages',
+	// 		label: 'of using SvelteKit?',
+	// 		action: 'What are the advantages of using SvelteKit?'
+	// 	},
+	// 	{
+	// 		title: 'Write code to',
+	// 		label: `demonstrate djikstra's algorithm`,
+	// 		action: `Write code to demonstrate djikstra's algorithm`
+	// 	},
+	// 	{
+	// 		title: 'Help me write an essay',
+	// 		label: `about silicon valley`,
+	// 		action: `Help me write an essay about silicon valley`
+	// 	},
+	// 	{
+	// 		title: 'What is the weather like',
+	// 		label: 'in San Francisco?',
+	// 		action: 'What is the weather like in San Francisco?'
+	// 	}
+	// ];
+
 </script>
 
 <div class="grid w-full gap-2 sm:grid-cols-2">
-	{#each suggestedActions as suggestedAction, i (suggestedAction.title)}
+	{#each model.suggestedMessages as suggestedAction, i (suggestedAction)}
 		<div
 			in:fly|global={{ opacity: 0, y: 20, delay: 50 * i, duration: 400 }}
 			class={i > 1 ? 'hidden sm:block' : 'block'}
@@ -47,15 +48,15 @@
 					}
 					await chatClient.sendMessage({
 						role: 'user',
-						parts: [{ type: 'text', text: suggestedAction.action }]
+						parts: [{ type: 'text', text: suggestedAction }]
 					});
 				}}
 				class="h-auto w-full flex-1 items-start justify-start gap-1 rounded-xl border px-4 py-3.5 text-left text-sm sm:flex-col"
 			>
-				<span class="font-medium">{suggestedAction.title}</span>
-				<span class="text-muted-foreground">
-					{suggestedAction.label}
-				</span>
+				<span class="font-medium">{suggestedAction}</span>
+				<!-- <span class="text-muted-foreground">
+					{suggestedAction}
+				</span> -->
 			</Button>
 		</div>
 	{/each}

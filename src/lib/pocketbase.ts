@@ -17,9 +17,34 @@ export type User = AuthModel;
 
 export interface Chat {
 	id: string;
+	uuid: string;
 	title: string;
 	userId: string;
-	visibility: 'public' | 'private';
+	model: string;
+	created: Date;
+	updated: Date;
+}
+
+export interface Model {
+	id: string;
+	name: string;
+	instructions: string;
+	provider: string;
+	version: string;
+	systemPrompt: string;
+	temperature: number;
+	topP: number;
+	topK: number;
+	frequencyPenalty: number;
+	presencePenalty: number;
+	repetitionPenalty: number;
+	minP: number;
+	topA: number;
+	maxTokens: number;
+	creator: string;
+	apiKey: string;
+	allowFiles: boolean;
+	suggestedMessages: string[];
 	created: Date;
 	updated: Date;
 }
@@ -36,15 +61,13 @@ export interface Message {
 
 export interface Document {
 	id: string;
-	type: "file" | "image";
+	type: 'file' | 'image';
 	filename: string;
 	mediaType: string;
 	data: string;
 	userId: string;
 	created: Date;
 	updated: Date;
-
-
 }
 
 export interface TypedPocketBase extends PocketBase {
@@ -52,6 +75,7 @@ export interface TypedPocketBase extends PocketBase {
 	collection(idOrName: 'users'): RecordService<User>;
 	collection(idOrName: 'chats'): RecordService<Chat>;
 	collection(idOrName: 'messages'): RecordService<Message>;
+	collection(idOrName: 'models'): RecordService<Model>;
 }
 
 export const getImageURL = (

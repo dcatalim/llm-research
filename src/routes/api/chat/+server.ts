@@ -3,27 +3,75 @@ import { createOpenRouter } from '@openrouter/ai-sdk-provider';
 import { GOOGLE_GENERATIVE_AI_API_KEY, OPENROUTER_API_KEY } from '$env/static/private';
 import { error } from '@sveltejs/kit';
 import { getMostRecentUserMessage, getTrailingMessageId } from '$lib/utils/chat.js';
-import type { Chat } from '$lib/pocketbase.js';
-import { generateTitleFromUserMessage } from '$lib/server/ai/utils';
+import type { Chat, Model } from '$lib/pocketbase.js';
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
+import { serializeNonPOJOs } from '$lib/utils';
+import { decryptApiKey } from '$lib/server/encryption.js';
+import { generateText } from 'ai';
 
 const google = createGoogleGenerativeAI({
 	apiKey: GOOGLE_GENERATIVE_AI_API_KEY
-});
-
-const openrouter = createOpenRouter({
-	apiKey: OPENROUTER_API_KEY
 });
 
 export async function POST({ request, locals, cookies }) {
 	const { id, messages }: { id: string; messages: UIMessage[] } = await request.json();
 
 	const selectedChatModel = cookies.get('selected-model');
-	console.log('Selected Chat Model:', selectedChatModel);
 
 	// if (!locals.pb.authStore.isValid) {
 	// 	error(401, 'Unauthorized');
 	// }
+
+	if (!selectedChatModel) {
+		error(401, 'No chat model selected');
+	}
+
+	const getModelbyId = async (modelId: string) => {
+		try {
+			const record = await locals.pb.collection('models').getOne(modelId, {
+				expand: 'apiKey'
+			});
+			return serializeNonPOJOs(record as Model);
+		} catch (error) {
+			console.error('Error fetching model:', error);
+			return error;
+		}
+	};
+
+	const modelDetails = (await getModelbyId(selectedChatModel || '')) as Model;
+
+	console.log('Model Details:', modelDetails);
+
+	const encryptedApiKey = modelDetails?.expand?.apiKey?.encryptedApiKey;
+
+	const decryptedApiKey = decryptApiKey(encryptedApiKey);
+
+	const openrouter = createOpenRouter({
+		apiKey: decryptedApiKey
+	});
+
+	async function generateTitleFromUserMessage({
+		message
+	}: {
+		message: UIMessage;
+	}): Promise<string> {
+		try {
+			const result = await generateText({
+				model: openrouter.chat(modelDetails?.version),
+				system: `\n
+          - you will generate a short title based on the first message a user begins a conversation with
+          - ensure it is not more than 80 characters long
+          - the title should be a summary of the user's message
+          - do not use quotes or colons`,
+				prompt: JSON.stringify(message)
+			});
+
+			return result.text;
+		} catch (e) {
+			console.error('Error generating title:', e.message);
+			error(500, 'Error generating title');
+		}
+	}
 
 	const userMessage = getMostRecentUserMessage(messages);
 
@@ -36,6 +84,7 @@ export async function POST({ request, locals, cookies }) {
 			const data = {
 				uuid: id,
 				title: title,
+				model: selectedChatModel,
 				userId: locals.user?.id ?? undefined
 			};
 
@@ -95,9 +144,12 @@ export async function POST({ request, locals, cookies }) {
 	});
 
 	const result = streamText({
-		// model: google('gemini-2.5-pro'),
-		model: openrouter.chat('meta-llama/llama-3.3-8b-instruct:free'),
-		maxOutputTokens: 1024,
+		model: openrouter.chat(modelDetails?.version),
+		maxOutputTokens: modelDetails.maxTokens,
+		temperature: modelDetails.temperature,
+		// topK: modelDetails.topK,
+		topP: modelDetails.topP,
+		frequencyPenalty: modelDetails.frequencyPenalty,
 		messages: convertToModelMessages(messages)
 	});
 

@@ -12,19 +12,21 @@
 		user,
 		chat,
 		readonly,
+		model
 	}: {
 		user: User | undefined;
 		chat: Chat | undefined;
 		readonly: boolean;
+		model: any;
 	} = $props();
 
 	const sidebar = useSidebar();
 </script>
 
 <header class="sticky top-0 flex items-center gap-2 bg-background p-2">
-	<SidebarToggle />
+	<!-- <SidebarToggle /> -->
 
-	{#if !sidebar?.open || (innerWidth.current ?? 768) < 768}
+	<!-- {#if !sidebar?.open || (innerWidth.current ?? 768) < 768}
 		<Tooltip.Provider>
 			<Tooltip.Root>
 				<Tooltip.Trigger>
@@ -47,17 +49,17 @@
 				<Tooltip.Content>New Chat</Tooltip.Content>
 			</Tooltip.Root>
 		</Tooltip.Provider>
-	{/if}
+	{/if} -->
 
-	{#if !readonly}
-		<!-- <ModelSelector class="order-1 md:order-2" /> -->
-	{/if}
+	<!-- {#if !readonly}
+		<ModelSelector class="order-1 md:order-2" />
+	{/if} -->
 
-	{#if !readonly && chat}
-		<!-- <VisibilitySelector {chat} class="order-1 md:order-3" /> -->
-	{/if}
+	<!-- {#if !readonly && chat}
+		<VisibilitySelector {chat} class="order-1 md:order-3" />
+	{/if} -->
 
-	{#if !user}
-		<!-- <Button href="/signin" class="order-5 px-2 py-1.5 md:h-[34px]">Sign In</Button> -->
-	{/if}
+	<!-- {#if !user}
+		<Button href="/signin" class="order-5 px-2 py-1.5 md:h-[34px]">Sign In</Button>
+	{/if} -->
 </header>

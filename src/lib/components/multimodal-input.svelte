@@ -20,11 +20,13 @@
 		files = $bindable(),
 		user,
 		chatClient,
+		model,
 		class: c
 	}: {
 		files: FileUIPart[];
 		user: User | undefined;
 		chatClient: Chat;
+		model: any;
 		class?: string;
 	} = $props();
 
@@ -153,7 +155,7 @@
 
 <div class="relative flex w-full flex-col gap-4">
 	{#if mounted && chatClient.messages.length === 0 && files.length === 0 && uploadQueue.length === 0}
-		<SuggestedActions {user} {chatClient} />
+		<SuggestedActions {user} {chatClient} {model} />
 	{/if}
 
 	<input
@@ -209,9 +211,11 @@
 		}}
 	/>
 
-	<div class="absolute bottom-0 flex w-fit flex-row justify-start p-2">
-		{@render attachmentsButton()}
-	</div>
+	{#if model?.allowFiles}
+		<div class="absolute bottom-0 flex w-fit flex-row justify-start p-2">
+			{@render attachmentsButton()}
+		</div>
+	{/if}
 
 	<div class="absolute right-0 bottom-0 flex w-fit flex-row justify-end p-2">
 		{#if loading}

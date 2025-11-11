@@ -20,10 +20,15 @@
 	import { cn } from '$lib/utils.js';
 	import * as Select from '$lib/components/ui/select';
 	import { goto } from '$app/navigation';
+	import { TagsInput } from '$lib/components/ui/tags-input';
+	import * as Tooltip from '$lib/components/ui/tooltip';
 
-	let { data }: { data: { form: SuperValidated<Infer<ModelConfigurationSchema>>, apiKeys: any[] } } = $props();
+	let {
+		data
+	}: { data: { form: SuperValidated<Infer<ModelConfigurationSchema>>; apiKeys: any[] } } = $props();
 
 	const form = superForm(data.form, {
+		dataType: 'json',
 		resetForm: false,
 		validators: zod4Client(modelConfigurationSchema),
 		onUpdated({ form }) {
@@ -86,11 +91,8 @@
 		modelOptions.find((m) => m.value === selectedModelId)?.label ?? 'Select a model...'
 	);
 
-	// Extract provider from model ID (e.g., "openai/gpt-4" -> "openai")
 	$effect(() => {
 		if (selectedModelId) {
-			const provider = selectedModelId.split('/')[0] || '';
-			$formData.provider = provider;
 			$formData.version = selectedModelId;
 		}
 	});
@@ -137,7 +139,12 @@
 					<Form.Control>
 						{#snippet children({ props })}
 							<Form.Label>Configuration Name</Form.Label>
-							<Input {...props} placeholder="My Research Assistant" bind:value={$formData.name} />
+							<Input
+								{...props}
+								autofocus
+								placeholder="My Research Assistant"
+								bind:value={$formData.name}
+							/>
 						{/snippet}
 					</Form.Control>
 					<Form.FieldErrors />
@@ -146,7 +153,7 @@
 				<Form.Field {form} name="instructions">
 					<Form.Control>
 						{#snippet children({ props })}
-							<Form.Label>Instructions</Form.Label>
+							<Form.Label>User Instructions</Form.Label>
 							<Textarea
 								{...props}
 								placeholder="Explain the purpose of this model to testers..."
@@ -157,9 +164,6 @@
 					</Form.Control>
 					<Form.FieldErrors />
 				</Form.Field>
-
-				<!-- Hidden provider field -->
-				<input type="hidden" name="provider" bind:value={$formData.provider} />
 
 				<Form.Field {form} name="version">
 					<Form.Control>
@@ -246,14 +250,19 @@
 		<Card.Root>
 			<Card.Header>
 				<Card.Title>Advanced Parameters</Card.Title>
-				<Card.Description>Fine-tune model behavior</Card.Description>
+				<Card.Description>Hover over the parameter's name to see an explanation</Card.Description>
 			</Card.Header>
 			<Card.Content class="space-y-4">
 				<Form.Field {form} name="temperature">
 					<Form.Control>
 						{#snippet children({ props })}
 							<div class="flex items-center justify-between">
-								<Form.Label>Temperature</Form.Label>
+								{@render explanationTooltip(
+									'Temperature',
+									'This setting influences the variety in the model’s responses. Lower values lead to more predictable and typical responses, while higher values encourage more diverse and less common responses. At 0, the model always gives the same response for a given input.'
+								)}
+								<!-- <Form.Label>Temperature</Form.Label> -->
+
 								<span class="text-sm text-muted-foreground">{$formData.temperature}</span>
 							</div>
 							<input type="hidden" {...props} bind:value={$formData.temperature} />
@@ -261,38 +270,15 @@
 								type="single"
 								{...props}
 								bind:value={$formData.temperature}
+								min={0}
 								max={2}
 								step={0.1}
 							/>
 						{/snippet}
 					</Form.Control>
-					<Form.Description class="text-xs"
+					<!-- <Form.Description class="text-xs"
 						>Controls randomness. Lower is more focused, higher is more creative.</Form.Description
-					>
-					<Form.FieldErrors />
-				</Form.Field>
-
-				<Form.Field {form} name="maxTokens">
-					<Form.Control>
-						{#snippet children({ props })}
-							<div class="flex items-center justify-between">
-								<Form.Label>Max Tokens</Form.Label>
-								<span class="text-sm text-muted-foreground">{$formData.maxTokens}</span>
-							</div>
-							<input type="hidden" {...props} bind:value={$formData.maxTokens} />
-
-							<Slider
-								type="single"
-								{...props}
-								bind:value={$formData.maxTokens}
-								max={4096}
-								step={128}
-							/>
-						{/snippet}
-					</Form.Control>
-					<Form.Description class="text-xs"
-						>Maximum length of the generated response.</Form.Description
-					>
+					> -->
 					<Form.FieldErrors />
 				</Form.Field>
 
@@ -300,17 +286,50 @@
 					<Form.Control>
 						{#snippet children({ props })}
 							<div class="flex items-center justify-between">
-								<Form.Label>Top P</Form.Label>
+								{@render explanationTooltip(
+									'Top P',
+									'This setting limits the model’s choices to a percentage of likely tokens: only the top tokens whose probabilities add up to P. A lower value makes the model’s responses more predictable, while the default setting allows for a full range of token choices. Think of it like a dynamic Top-K.'
+								)}
+								<!-- <Form.Label>Top P</Form.Label> -->
 								<span class="text-sm text-muted-foreground">{$formData.topP}</span>
 							</div>
 							<input type="hidden" {...props} bind:value={$formData.topP} />
 
-							<Slider type="single" {...props} bind:value={$formData.topP} max={1} step={0.05} />
+							<Slider
+								type="single"
+								{...props}
+								bind:value={$formData.topP}
+								min={0}
+								max={1}
+								step={0.05}
+							/>
 						{/snippet}
 					</Form.Control>
-					<Form.Description class="text-xs"
+					<!-- <Form.Description class="text-xs"
 						>Nucleus sampling threshold for token selection.</Form.Description
-					>
+					> -->
+					<Form.FieldErrors />
+				</Form.Field>
+
+				<Form.Field {form} name="topK">
+					<Form.Control>
+						{#snippet children({ props })}
+							<div class="flex items-center justify-between">
+								{@render explanationTooltip(
+									'Top K',
+									'This limits the model’s choice of tokens at each step, making it choose from a smaller set. A value of 1 means the model will always pick the most likely next token, leading to predictable results. By default this setting is disabled, making the model to consider all choices.'
+								)}
+								<!-- <Form.Label>Top K</Form.Label> -->
+								<span class="text-sm text-muted-foreground">{$formData.topK}</span>
+							</div>
+							<input type="hidden" {...props} bind:value={$formData.topK} />
+
+							<Slider type="single" {...props} bind:value={$formData.topK} min={0} step={0.05} />
+						{/snippet}
+					</Form.Control>
+					<!-- <Form.Description class="text-xs"
+						>Nucleus sampling threshold for token selection.</Form.Description
+					> -->
 					<Form.FieldErrors />
 				</Form.Field>
 
@@ -318,7 +337,11 @@
 					<Form.Control>
 						{#snippet children({ props })}
 							<div class="flex items-center justify-between">
-								<Form.Label>Frequency Penalty</Form.Label>
+								{@render explanationTooltip(
+									'Frequency Penalty',
+									'This setting aims to control the repetition of tokens based on how often they appear in the input. It tries to use less frequently those tokens that appear more in the input, proportional to how frequently they occur. Token penalty scales with the number of occurrences. Negative values will encourage token reuse.'
+								)}
+								<!-- <Form.Label>Frequency Penalty</Form.Label> -->
 								<span class="text-sm text-muted-foreground">{$formData.frequencyPenalty}</span>
 							</div>
 							<input type="hidden" {...props} bind:value={$formData.frequencyPenalty} />
@@ -327,13 +350,146 @@
 								type="single"
 								{...props}
 								bind:value={$formData.frequencyPenalty}
+								min={-2}
 								max={2}
 								step={0.1}
 							/>
 						{/snippet}
 					</Form.Control>
-					<Form.Description class="text-xs">Reduces repetition of token sequences.</Form.Description
-					>
+					<!-- <Form.Description class="text-xs">Reduces repetition of token sequences.</Form.Description
+					> -->
+					<Form.FieldErrors />
+				</Form.Field>
+
+				<Form.Field {form} name="presencePenalty">
+					<Form.Control>
+						{#snippet children({ props })}
+							<div class="flex items-center justify-between">
+								{@render explanationTooltip(
+									'Presence Penalty',
+									'Adjusts how often the model repeats specific tokens already used in the input. Higher values make such repetition less likely, while negative values do the opposite. Token penalty does not scale with the number of occurrences. Negative values will encourage token reuse.'
+								)}
+								<!-- <Form.Label>Presence Penalty</Form.Label> -->
+								<span class="text-sm text-muted-foreground">{$formData.presencePenalty}</span>
+							</div>
+							<input type="hidden" {...props} bind:value={$formData.presencePenalty} />
+
+							<Slider
+								type="single"
+								{...props}
+								bind:value={$formData.presencePenalty}
+								min={-2}
+								max={2}
+								step={0.1}
+							/>
+						{/snippet}
+					</Form.Control>
+					<!-- <Form.Description class="text-xs">Reduces repetition of token sequences.</Form.Description
+					> -->
+					<Form.FieldErrors />
+				</Form.Field>
+
+				<Form.Field {form} name="repetitionPenalty">
+					<Form.Control>
+						{#snippet children({ props })}
+							<div class="flex items-center justify-between">
+								{@render explanationTooltip(
+									'Repetition Penalty',
+									'Helps to reduce the repetition of tokens from the input. A higher value makes the model less likely to repeat tokens, but too high a value can make the output less coherent (often with run-on sentences that lack small words). Token penalty scales based on original token’s probability.'
+								)}
+								<!-- <Form.Label>Repetition Penalty</Form.Label> -->
+								<span class="text-sm text-muted-foreground">{$formData.repetitionPenalty}</span>
+							</div>
+							<input type="hidden" {...props} bind:value={$formData.repetitionPenalty} />
+
+							<Slider
+								type="single"
+								{...props}
+								bind:value={$formData.repetitionPenalty}
+								min={0}
+								max={2}
+								step={0.1}
+							/>
+						{/snippet}
+					</Form.Control>
+					<!-- <Form.Description class="text-xs">Reduces repetition of token sequences.</Form.Description
+					> -->
+					<Form.FieldErrors />
+				</Form.Field>
+
+				<Form.Field {form} name="minP">
+					<Form.Control>
+						{#snippet children({ props })}
+							<div class="flex items-center justify-between">
+								{@render explanationTooltip(
+									'Min P',
+									'Represents the minimum probability for a token to be considered, relative to the probability of the most likely token. (The value changes depending on the confidence level of the most probable token.) If your Min-P is set to 0.1, that means it will only allow for tokens that are at least 1/10th as probable as the best possible option.'
+								)}
+								<!-- <Form.Label>Repetition Penalty</Form.Label> -->
+								<span class="text-sm text-muted-foreground">{$formData.minP}</span>
+							</div>
+							<input type="hidden" {...props} bind:value={$formData.minP} />
+
+							<Slider
+								type="single"
+								{...props}
+								bind:value={$formData.minP}
+								min={0}
+								max={1}
+								step={0.1}
+							/>
+						{/snippet}
+					</Form.Control>
+					<!-- <Form.Description class="text-xs">Reduces repetition of token sequences.</Form.Description
+					> -->
+					<Form.FieldErrors />
+				</Form.Field>
+
+				<Form.Field {form} name="topA">
+					<Form.Control>
+						{#snippet children({ props })}
+							<div class="flex items-center justify-between">
+								{@render explanationTooltip(
+									'Min P',
+									'Consider only the top tokens with “sufficiently high” probabilities based on the probability of the most likely token. Think of it like a dynamic Top-P. A lower Top-A value focuses the choices based on the highest probability token but with a narrower scope. A higher Top-A value does not necessarily affect the creativity of the output, but rather refines the filtering process based on the maximum probability.'
+								)}
+								<!-- <Form.Label>Repetition Penalty</Form.Label> -->
+								<span class="text-sm text-muted-foreground">{$formData.topA}</span>
+							</div>
+							<input type="hidden" {...props} bind:value={$formData.topA} />
+
+							<Slider
+								type="single"
+								{...props}
+								bind:value={$formData.topA}
+								min={0}
+								max={1}
+								step={0.1}
+							/>
+						{/snippet}
+					</Form.Control>
+					<!-- <Form.Description class="text-xs">Reduces repetition of token sequences.</Form.Description
+					> -->
+					<Form.FieldErrors />
+				</Form.Field>
+
+				<Form.Field {form} name="maxTokens">
+					<Form.Control>
+						{#snippet children({ props })}
+							<div class="flex items-center justify-between">
+								{@render explanationTooltip(
+									'Max Tokens',
+									'This sets the upper limit for the number of tokens the model can generate in response. It won’t produce more than this limit. The maximum value is the context length minus the prompt length.'
+								)}
+								<!-- <Form.Label>Max Tokens</Form.Label> -->
+							</div>
+
+							<Input {...props} type="number" min="1" bind:value={$formData.maxTokens} />
+						{/snippet}
+					</Form.Control>
+					<!-- <Form.Description class="text-xs"
+						>Maximum length of the generated response.</Form.Description
+					> -->
 					<Form.FieldErrors />
 				</Form.Field>
 			</Card.Content>
@@ -345,19 +501,27 @@
 			<Card.Title>Additional Configuration</Card.Title>
 			<Card.Description>Configure how testers interact with this model</Card.Description>
 		</Card.Header>
-		<Card.Content class="w-full space-y-2">
-			<Form.Field {form} name="api_key">
+		<Card.Content class="w-full space-y-4">
+			<Form.Field {form} name="apiKey">
 				<Form.Control>
 					{#snippet children({ props })}
 						<Form.Label>API Key</Form.Label>
 						{#if data.apiKeys.length === 0}
-							<div class="flex items-center gap-2 rounded-md border border-input bg-background px-3 py-2 w-fit">
-								<span class="text-sm text-muted-foreground">No API keys found. <a href="/dashboard/keys/create" class="text-primary hover:underline">Create one first</a>.</span>
+							<div
+								class="flex w-fit items-center gap-2 rounded-md border border-input bg-background px-3 py-2"
+							>
+								<span class="text-sm text-muted-foreground"
+									>No API keys found. <a
+										href="/dashboard/keys/create"
+										class="text-primary hover:underline">Create one first</a
+									>.</span
+								>
 							</div>
 						{:else}
-							<Select.Root type="single" bind:value={$formData.api_key} name={props.name}>
+							<Select.Root type="single" bind:value={$formData.apiKey} name={props.name}>
 								<Select.Trigger {...props} class="w-[180px]">
-									{data.apiKeys.find((key) => key.id === $formData.api_key)?.name ?? 'Select an API key...'}
+									{data.apiKeys.find((key) => key.id === $formData.apiKey)?.name ??
+										'Select an API key...'}
 								</Select.Trigger>
 								<Select.Content>
 									{#each data.apiKeys as apiKey (apiKey.id)}
@@ -373,6 +537,27 @@
 				>
 				<Form.FieldErrors />
 			</Form.Field>
+
+			<Form.Field {form} name="suggestedMessages">
+				<Form.Control>
+					{#snippet children({ props })}
+						<Form.Label>Suggested Messages</Form.Label>
+
+						<TagsInput
+							{...props}
+							bind:value={$formData.suggestedMessages}
+							placeholder="Add a message"
+						/>
+
+						<!-- <Input {...props} placeholder="Tell me fun facts about the moon" bind:value={$formData.name} /> -->
+					{/snippet}
+				</Form.Control>
+				<Form.Description class="text-xs"
+					>Suggest some first interactions for the user.</Form.Description
+				>
+				<Form.FieldErrors />
+			</Form.Field>
+
 			<!-- <div class="flex flex-row items-center justify-between rounded-lg border p-4">
 				<div class="space-y-0.5">
 					<Label>Marketing emails</Label>
@@ -396,3 +581,19 @@
 		<SuperDebug data={formData} />
 	{/if}
 </form>
+
+{#snippet explanationTooltip(name: string, explanation: string)}
+	<Tooltip.Provider>
+		<Tooltip.Root>
+			<Tooltip.Trigger class="flex items-center gap-1">
+				<Form.Label>{name}</Form.Label>
+				<!-- <CircleQuestionMark size={16} class="text-muted-foreground" /> -->
+			</Tooltip.Trigger>
+			<Tooltip.Content>
+				<p class="max-w-sm text-justify">
+					{explanation}
+				</p>
+			</Tooltip.Content>
+		</Tooltip.Root>
+	</Tooltip.Provider>
+{/snippet}

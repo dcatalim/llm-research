@@ -2,23 +2,38 @@ import { serializeNonPOJOs } from '$lib/utils';
 import { error } from 'console';
 import type { PageServerLoad } from './$types';
 import { redirect } from '@sveltejs/kit';
+import type { Model } from '$lib/pocketbase';
 
 export const load = (async ({ locals, params }) => {
 	if (!locals.pb.authStore.isValid) {
 		throw redirect(302, '/login');
 	}
 
-	const getModel = async (modelId) => {
+	const getModelbyId = async (modelId: string) => {
 		try {
-			const result = serializeNonPOJOs(await locals.pb.collection('models').getOne(modelId));
-			return result;
-		} catch (err) {
-			console.log('Error: ', err);
-			throw error(err.status, err.message);
+			const record = await locals.pb.collection('models').getOne(modelId);
+			return serializeNonPOJOs(record);
+		} catch (error) {
+			console.error('Error fetching model:', error);
+			return error;
 		}
 	};
 
+	const getChatsByModelId = async (modelId: string) => {
+		try {
+			const records = await locals.pb.collection('chats').getFullList({
+				filter: `model = "${modelId}"`,
+				sort: '-created'
+			});
+			return serializeNonPOJOs(records);
+		} catch (error) {
+			console.error('Error fetching chats:', error);
+			return error;
+		}
+	};
+	
 	return {
-		model: getModel(params.modelId)
+		model: await getModelbyId(params.modelId),
+		chats: await getChatsByModelId(params.modelId)
 	};
 }) satisfies PageServerLoad;

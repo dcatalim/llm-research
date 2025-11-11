@@ -69,7 +69,8 @@
 </script>
 
 <div class="flex h-dvh min-w-0 flex-col bg-background">
-	<ChatHeader {user} {chat} {readonly} />
+	<!-- <ChatHeader {user} {chat} {readonly} {model} /> -->
+	 
 	<Messages
 		{readonly}
 		loading={chatClient.status === 'streaming' || chatClient.status === 'submitted'}
@@ -79,7 +80,7 @@
 
 	<form class="mx-auto flex w-full gap-2 bg-background px-4 pb-4 md:max-w-3xl md:pb-6">
 		{#if !readonly}
-			<MultimodalInput {files} {user} {chatClient} class="flex-1" />
+			<MultimodalInput {files} {user} {chatClient} {model} class="flex-1" />
 		{/if}
 	</form>
 </div>

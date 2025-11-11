@@ -32,15 +32,23 @@ export type UserUpdateSchema = typeof userUpdateSchema;
 
 export const modelConfigurationSchema = z.object({
 	name: z.string().nonempty(),
-	provider: z.string().nonempty(),
+	instructions: z.string().nonempty(),
+	// provider: z.string().nonempty(),
 	version: z.string().nonoptional(),
 	systemPrompt: z.string().optional(),
-	temperature: z.number().default(0.7),
-	maxTokens: z.number().default(2048),
-	topP: z.number().default(0.9),
-	frequencyPenalty: z.number().default(0),
-	api_key: z.string().nonempty(),
-	instructions: z.string().nonempty()
+
+	temperature: z.number().min(0).max(2).default(1),
+	topP: z.number().min(0).max(1).default(1),
+	topK: z.number().min(0).default(0),
+	frequencyPenalty: z.number().min(-2).max(2).default(0),
+	presencePenalty: z.number().min(-2).max(2).default(0),
+	repetitionPenalty: z.number().min(0).max(2).default(1),
+	minP: z.number().min(0).max(1).default(0),
+	topA: z.number().min(0).max(1).default(0),
+	maxTokens: z.number().min(1).default(4096),
+
+	apiKey: z.string().nonempty(),
+	suggestedMessages: z.array(z.string()).default([])
 });
 export type ModelConfigurationSchema = typeof modelConfigurationSchema;
 

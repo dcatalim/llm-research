@@ -5,8 +5,6 @@
 
 	let { data }: PageProps = $props();
 
-	// let updatedChat = data.chat ?? {};
-	// updatedChat.id = data.chat?.uuid; // Ensure chat has 'id' field for Chat component
 </script>
 
 <Chat
@@ -14,4 +12,5 @@
 	initialMessages={convertToUIMessages(data.messages)}
 	readonly={data.user?.id !== data.chat?.userId}
 	user={data.user}
+	model={data.model}
 />

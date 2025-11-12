@@ -1,8 +1,6 @@
 <script lang="ts">
 	import { Chat } from '@ai-sdk/svelte';
 	import { toast } from 'svelte-sonner';
-	import { ChatHistory } from '$lib/hooks/chat-history.svelte';
-	import ChatHeader from './chat-header.svelte';
 	import type { Chat as DbChat, User } from '$lib/pocketbase';
 	import Messages from './messages.svelte';
 	import MultimodalInput from './multimodal-input.svelte';
@@ -23,7 +21,6 @@
 		model: any;
 	} = $props();
 
-	const chatHistory = ChatHistory.fromContext();
 
 	const chatClient = $derived(
 		new Chat({
@@ -32,9 +29,9 @@
 			// clientside while still SSRing them on initial load or when we navigate to a different chat.
 			messages: initialMessages,
 			generateId: crypto.randomUUID.bind(crypto),
-			onFinish: async () => {
-				await chatHistory.refetch();
-			},
+			// onFinish: async () => {
+			// 	await chatHistory.refetch();
+			// },
 			onError: (error) => {
 				let message = 'An error occurred while generating the response.';
 				try {

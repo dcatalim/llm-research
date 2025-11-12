@@ -5,7 +5,6 @@
 	import { Spinner } from '$lib/components/ui/spinner/index.js';
 	import KeyBox from './key-box.svelte';
 	import NoKeysFound from './no-keys-found.svelte';
-	import { enhance } from '$app/forms';
 	import { toast } from 'svelte-sonner';
 
 	let { data }: PageProps = $props();

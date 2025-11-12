@@ -1,5 +1,4 @@
 <script lang="ts">
-	import TreePalmIcon from '@lucide/svelte/icons/tree-palm';
 	import MessageIcon from '@lucide/svelte/icons/message-circle';
 	import { scale } from 'svelte/transition';
 

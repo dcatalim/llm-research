@@ -2,7 +2,6 @@ import { serializeNonPOJOs } from '$lib/utils';
 import { error } from 'console';
 import type { PageServerLoad } from './$types';
 import { redirect } from '@sveltejs/kit';
-import type { Model } from '$lib/pocketbase';
 
 export const load = (async ({ locals, params }) => {
 	if (!locals.pb.authStore.isValid) {

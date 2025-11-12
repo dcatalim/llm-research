@@ -24,7 +24,6 @@ export const userUpdateSchema = z.object({
 	name: z.string().nonempty(),
 	surname: z.string().nonempty(),
 	email: z.email().nonempty(),
-	openRouterKey: z.string().optional() // Add this field
 });
 export type UserUpdateSchema = typeof userUpdateSchema;
 

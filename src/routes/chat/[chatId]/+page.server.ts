@@ -1,18 +1,19 @@
 import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 
-export const load = (async ({ locals, params }) => {
+export const load = (async ({ locals, params, parent }) => {
+    const parentData = await parent();
 
     const getChatById = async (chatId: string) => {
-		try {
-			const chat = await locals.pb.collection('chats').getFirstListItem(`uuid="${chatId}"`);
+        try {
+            const chat = await locals.pb.collection('chats').getFirstListItem(`uuid="${chatId}"`);
 
-			return chat;
-		} catch (error) {
-			console.error('Error fetching chat:', error);
-			return undefined;
-		}
-	};
+            return chat;
+        } catch (error) {
+            console.error('Error fetching chat:', error);
+            return undefined;
+        }
+    };
 
     const chat = await getChatById(params.chatId);
 
@@ -33,9 +34,9 @@ export const load = (async ({ locals, params }) => {
         }
     };
 
-	return {
-        user: locals.user,
-		chat: chat,
+    return {
+        ...parentData,
+        chat: chat,
         messages: await getMessagesByChatId(chat?.id),
-	};
+    };
 }) satisfies PageServerLoad;

@@ -13,6 +13,6 @@ export const load = (async ({ locals }) => {
 
 	return {
 		user: locals.user,
-		form: await superValidate(serializeNonPOJOs(locals.user), zod4(userUpdateSchema))
+		// form: await superValidate(serializeNonPOJOs(locals.user), zod4(userUpdateSchema))
 	};
 }) satisfies PageServerLoad;

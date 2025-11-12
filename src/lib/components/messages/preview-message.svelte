@@ -1,9 +1,6 @@
 <script lang="ts">
 	import { cn } from '$lib/utils';
 	import SparklesIcon from '@lucide/svelte/icons/sparkles';
-	import { Tooltip, TooltipContent, TooltipTrigger } from '$lib/components/ui/tooltip';
-	import { Button } from '$lib/components/ui/button';
-	import PencilEditIcon from '@lucide/svelte/icons/pencil';
 	import PreviewAttachment from '../preview-attachment.svelte';
 	import { Markdown } from '../markdown';
 	import MessageReasoning from '../message-reasoning.svelte';

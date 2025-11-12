@@ -59,19 +59,15 @@
 	}
 
 	async function submitForm(event?: Event) {
+		// Add validation check
+		if (input.trim().length === 0) {
+			input = input.trim();
+			return;
+		}
+
 		if (user) {
 			replaceState(`/chat/${chatClient.id}`, {});
 		}
-
-		// // Convert FileParts to the format expected by sendMessage
-		// const files = attachments.map((part) => ({
-		// 	type: 'file' as const,
-		// 	filename: part.filename || 'file',
-		// 	mediaType: part.mediaType,
-		// 	url: getImageURL('documents', part.id, part.image ?? '', "full")
-		// }));
-		// console.log('Attachments to send:', attachments);
-		// console.log('Files to send:', files);
 
 		await chatClient.sendMessage({
 			text: input,

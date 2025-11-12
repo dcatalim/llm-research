@@ -69,7 +69,11 @@ export async function POST({ request, locals, cookies }) {
 			return result.text;
 		} catch (e) {
 			console.error('Error generating title:', e.message);
-			error(500, 'Error generating title');
+			const slicedMessage = message.parts[0]?.text?.slice(0, 80);
+			if (slicedMessage) {
+				return slicedMessage; // Fallback: use the first 80 characters of the user's message
+			}
+			error(500, e.message || 'Error generating title');
 		}
 	}
 

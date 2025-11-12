@@ -225,8 +225,10 @@
 						{/snippet}
 					</Form.Control>
 					<Form.Description class="text-xs"
-						>Select a model from OpenRouter's available models.</Form.Description
-					>
+						>Select a model from OpenRouter's available models.
+						<br />
+						Please note that some models don't support all parameters.
+					</Form.Description>
 					<Form.FieldErrors />
 				</Form.Field>
 

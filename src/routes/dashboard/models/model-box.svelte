@@ -1,8 +1,6 @@
 <script lang="ts">
 	import * as Item from '$lib/components/ui/item/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
-	import BadgeCheckIcon from '@lucide/svelte/icons/badge-check';
-	import ChevronRightIcon from '@lucide/svelte/icons/chevron-right';
 	import Trash_2 from '@lucide/svelte/icons/trash-2';
 	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
 	import { enhance } from '$app/forms';

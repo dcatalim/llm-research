@@ -5,14 +5,8 @@
 	import SuperDebug, { type SuperValidated, type Infer, superForm } from 'sveltekit-superforms';
 	import { zod4Client } from 'sveltekit-superforms/adapters';
 	import * as Card from '$lib/components/ui/card';
-	import Save from '@lucide/svelte/icons/save';
-	import * as Select from '$lib/components/ui/select';
-	import { Textarea } from '$lib/components/ui/textarea';
-	import { Slider } from '$lib/components/ui/slider/index.js';
 	import { dev } from '$app/environment';
 	import { toast } from 'svelte-sonner';
-	import { Spinner } from '$lib/components/ui/spinner/index.js';
-	import * as Password from '$lib/components/ui/password';
 
 	let { data }: { data: { form: SuperValidated<Infer<UserUpdateSchema>> } } = $props();
 
@@ -32,8 +26,6 @@
 	});
 
 	const { form: formData, delayed, enhance } = form;
-
-	
 </script>
 
 <form method="POST" class="flex flex-col gap-4" use:enhance>
@@ -47,14 +39,15 @@
 				<Share2 class="mr-2 h-4 w-4" />
 				Generate Share Link
 			</Button> -->
-			<Form.Button class="hover:cursor-pointer" disabled={$delayed}>
+
+			<!-- <Form.Button class="hover:cursor-pointer" disabled={$delayed}>
 				{#if $delayed}
 					<Spinner />
 				{:else}
 					<Save />
 				{/if}
 				Save Configuration</Form.Button
-			>
+			> -->
 		</div>
 	</div>
 
@@ -64,7 +57,7 @@
 				<Form.Control>
 					{#snippet children({ props })}
 						<Form.Label>Username</Form.Label>
-						<Input {...props} placeholder="Username" bind:value={$formData.name} />
+						<Input {...props} placeholder="Username" bind:value={$formData.name} disabled />
 					{/snippet}
 				</Form.Control>
 				<Form.FieldErrors />
@@ -74,21 +67,7 @@
 				<Form.Control>
 					{#snippet children({ props })}
 						<Form.Label>Email</Form.Label>
-						<Input {...props} placeholder="Email" bind:value={$formData.email} />
-					{/snippet}
-				</Form.Control>
-				<Form.FieldErrors />
-			</Form.Field>
-
-			<Form.Field {form} name="email">
-				<Form.Control>
-					{#snippet children({ props })}
-						<Form.Label>OpenRouter Key</Form.Label>
-						<Password.Root>
-							<Password.Input {...props} placeholder="sk-or-..." bind:value={$formData.surname} required>
-								<Password.ToggleVisibility />
-							</Password.Input>
-						</Password.Root>
+						<Input {...props} placeholder="Email" bind:value={$formData.email} disabled />
 					{/snippet}
 				</Form.Control>
 				<Form.FieldErrors />

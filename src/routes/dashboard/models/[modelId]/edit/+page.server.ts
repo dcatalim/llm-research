@@ -5,7 +5,6 @@ import { modelConfigurationSchema } from '$lib/schemas';
 import { fail } from '@sveltejs/kit';
 import { message } from 'sveltekit-superforms';
 import type { Actions } from '@sveltejs/kit';
-import { invalidateAll } from '$app/navigation';
 import { serializeNonPOJOs } from '$lib/utils';
 import { redirect } from '@sveltejs/kit';
 
@@ -64,20 +63,6 @@ export const actions: Actions = {
 		}
 
 		try {
-			// const data = {
-			// 	name: form.data.name,
-			// 	instructions: form.data.instructions,
-			// 	provider: form.data.provider,
-			// 	version: form.data.version,
-			// 	systemPrompt: form.data.systemPrompt,
-			// 	temperature: form.data.temperature,
-			// 	maxTokens: form.data.maxTokens,
-			// 	topP: form.data.topP,
-			// 	frequencyPenalty: form.data.frequencyPenalty,
-			// 	suggestedMessages: form.data.suggestedMessages,
-			// 	apiKey: form.data.apiKey,
-			// 	creator: locals.user?.id
-			// };
 
 			const data = {
 				...form.data,
@@ -85,7 +70,6 @@ export const actions: Actions = {
 				creator: locals.user?.id
 			};
 
-			console.log(data)
 			const record = await locals.pb.collection('models').update(modelId, data);
 			return message(form, 'Model successfully updated!');
 		} catch (err) {

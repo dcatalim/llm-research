@@ -1,4 +1,4 @@
-import { createCipheriv, createDecipheriv, randomBytes } from 'crypto';
+import { createCipheriv, createDecipheriv, randomBytes } from 'node:crypto';
 import { env } from '$env/dynamic/private';
 
 // Store this in your .env file - generate once and never change

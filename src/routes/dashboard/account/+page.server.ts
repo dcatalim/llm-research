@@ -4,7 +4,6 @@ import { superValidate } from 'sveltekit-superforms';
 import { zod4 } from 'sveltekit-superforms/adapters';
 import { userUpdateSchema } from '$lib/schemas';
 import { serializeNonPOJOs } from '$lib/utils';
-import { createHash } from 'crypto';
 
 export const load = (async ({ locals }) => {
 	if (!locals.pb.authStore.isValid) {

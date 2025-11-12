@@ -1,16 +1,16 @@
-import { redirect, type Actions } from '@sveltejs/kit';
-import type { PageServerLoad } from './$types';
+import { redirect } from '@sveltejs/kit';
+import type { PageServerLoad, Actions } from './$types.js';
 import { message, superValidate } from 'sveltekit-superforms';
 import { zod4 } from 'sveltekit-superforms/adapters';
 import { registerSchema } from '$lib/schemas';
 
 export const load = (async ({ locals }) => {
-	if (locals.pb.authStore.isValid) {
+	if (locals?.pb?.authStore?.isValid) {
 		throw redirect(302, '/');
 	}
 
 	return {
-		title: "Registar",
+		title: "Register",
 		form: await superValidate(zod4(registerSchema))
 	};
 }) satisfies PageServerLoad;
@@ -21,7 +21,7 @@ export const actions: Actions = {
 
 		if (!form.valid) {
 			// Will return fail(400, { form }) since form isn't valid
-			return message(form, 'Formulário Inválido');
+			return message(form, 'Invalid form');
 		}
 
 		const data = {
@@ -39,7 +39,7 @@ export const actions: Actions = {
 
 			await locals.pb.collection('users').authWithPassword(form.data.email, form.data.password);
 
-			return message(form, 'Verifique o seu email para validar a sua conta');
+			return message(form, 'Verify your email address to complete registration.');
 			// redirect happens because they become logged in and cant access this page
 		} catch (err) {
 			console.log('Error: ', err);

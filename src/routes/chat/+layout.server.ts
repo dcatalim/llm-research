@@ -5,7 +5,6 @@ export const load = (async ({ locals, cookies }) => {
 	
 	const { user } = locals;
 
-	const sidebarCollapsed = cookies.get('sidebar:state') !== 'true';
 
 	let modelId = cookies.get('selected-model');
 
@@ -16,6 +15,5 @@ export const load = (async ({ locals, cookies }) => {
 	
 	return {
 		user,
-		sidebarCollapsed,
 	};
 });

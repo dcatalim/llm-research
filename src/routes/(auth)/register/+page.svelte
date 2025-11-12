@@ -1,10 +1,12 @@
 <script lang="ts">
 	import Button from '$lib/components/ui/button/button.svelte';
 	import Logo from '$lib/components/Logo.svelte';
-	import RegisterForm from './RegisterForm.svelte';
+	// import RegisterForm from './RegisterForm.svelte';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
+
+	$inspect(data)
 </script>
 
 <section class="flex min-h-screen bg-zinc-50 px-4 py-16 md:py-32 dark:bg-transparent">
@@ -20,7 +22,7 @@
 				<p class="text-sm">Welcome! Create an account to start using the platform.</p>
 			</div>
 
-			<RegisterForm {data} />
+			<!-- <RegisterForm {data} /> -->
 		</div>
 
 		<div class="p-3">

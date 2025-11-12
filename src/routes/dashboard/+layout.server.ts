@@ -6,10 +6,5 @@ export const load = (async ({ locals, cookies }) => {
 		throw redirect(302, '/login');
 	}
 
-	const sidebarCollapsed = cookies.get('sidebar:state') !== 'true';
 
-
-	return {
-		sidebarCollapsed,
-	};
 }) satisfies LayoutServerLoad;

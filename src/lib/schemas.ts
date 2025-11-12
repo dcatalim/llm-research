@@ -17,8 +17,7 @@ export const registerSchema = z.object({
 	email: z.email().nonempty(),
 	password: z.string().nonempty(),
 	acceptTerms: z
-		.boolean('You should accept the Terms & Conditions if you wish to proceed.')
-		.parse(true)
+		.boolean('You should accept the Terms & Conditions if you wish to proceed.').parse(true)
 });
 export type RegisterSchema = typeof registerSchema;
 

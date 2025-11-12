@@ -16,7 +16,7 @@ export const load = (async ({ locals }) => {
 }) satisfies PageServerLoad;
 
 export const actions: Actions = {
-	login: async ({ request, locals, fetch}) => {
+	login: async ({ request, locals}) => {
 		const form = await superValidate(request, zod4(loginSchema));
 
 		if (!form.valid) {

@@ -1,6 +1,7 @@
 <script lang="ts">
-	import Input from '$lib/components/ui/input/input.svelte';
 	import * as Form from '$lib/components/ui/form/index.js';
+	import * as Password from '$lib/components/ui/password';
+	import Input from '$lib/components/ui/input/input.svelte';
 	import { registerSchema, type RegisterSchema } from '$lib/schemas';
 	import SuperDebug, { type SuperValidated, type Infer, superForm } from 'sveltekit-superforms';
 	import { zod4Client } from 'sveltekit-superforms/adapters';
@@ -8,7 +9,6 @@
 	import LoaderCircle from '@lucide/svelte/icons/loader-circle';
 	import { dev } from '$app/environment';
 	import { Checkbox } from '$lib/components/ui/checkbox/index.js';
-	import * as Password from '$lib/components/ui/password';
 
 	let { data }: { data: { form: SuperValidated<Infer<RegisterSchema>> } } = $props();
 

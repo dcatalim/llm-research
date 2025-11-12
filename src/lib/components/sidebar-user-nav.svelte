@@ -8,6 +8,7 @@
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
 	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
 	import { goto } from '$app/navigation';
+	import Key from '@lucide/svelte/icons/key';
 
 	let { user }: { user: { name: string; email: string; avatar: string } } = $props();
 	const sidebar = Sidebar.useSidebar();
@@ -66,14 +67,17 @@
 						<UserCircleIcon />
 						Account
 					</DropdownMenu.Item>
-					<DropdownMenu.Item>
-						<CreditCardIcon />
-						Billing
+					<DropdownMenu.Item
+					onclick={() => goto('/dashboard/keys')}
+						class="hover:cursor-pointer"
+						>
+						<Key />
+						Keys
 					</DropdownMenu.Item>
-					<DropdownMenu.Item>
+					<!-- <DropdownMenu.Item>
 						<NotificationIcon />
 						Notifications
-					</DropdownMenu.Item>
+					</DropdownMenu.Item> -->
 				</DropdownMenu.Group>
 				<DropdownMenu.Separator />
 				<DropdownMenu.Item onclick={() => goto('/logout')} class="hover:cursor-pointer">

@@ -65,9 +65,7 @@
 	let files = $state<FileUIPart[]>([]);
 </script>
 
-<div class="flex h-dvh min-w-0 flex-col bg-background">
-	<!-- <ChatHeader {user} {chat} {readonly} {model} /> -->
-	 
+<div class="flex h-dvh min-w-0 flex-col bg-background">	 
 	<Messages
 		{readonly}
 		loading={chatClient.status === 'streaming' || chatClient.status === 'submitted'}

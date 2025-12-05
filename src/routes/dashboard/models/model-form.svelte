@@ -19,30 +19,10 @@
 	import ChevronsUpDownIcon from '@lucide/svelte/icons/chevrons-up-down';
 	import { cn } from '$lib/utils.js';
 	import * as Select from '$lib/components/ui/select';
-	import { goto } from '$app/navigation';
 	import { TagsInput } from '$lib/components/ui/tags-input';
 	import * as Tooltip from '$lib/components/ui/tooltip';
 
-	let {
-		data
-	}: { data: { form: SuperValidated<Infer<ModelConfigurationSchema>>; apiKeys: any[] } } = $props();
-
-	const form = superForm(data.form, {
-		dataType: 'json',
-		resetForm: false,
-		validators: zod4Client(modelConfigurationSchema),
-		onUpdated({ form }) {
-			if (form.message) {
-				if (form.valid) {
-					toast.success(form.message);
-					goto('/dashboard/models');
-				} else {
-					toast.error(form.message);
-					console.error('Form submission error:', form.errors);
-				}
-			}
-		}
-	});
+	let { form, apiKeys }: { form: any; apiKeys: any[] } = $props();
 
 	const { form: formData, delayed, enhance } = form;
 
@@ -391,90 +371,6 @@
 					<Form.FieldErrors />
 				</Form.Field>
 
-				<Form.Field {form} name="repetitionPenalty">
-					<Form.Control>
-						{#snippet children({ props })}
-							<div class="flex items-center justify-between">
-								{@render explanationTooltip(
-									'Repetition Penalty',
-									'Helps to reduce the repetition of tokens from the input. A higher value makes the model less likely to repeat tokens, but too high a value can make the output less coherent (often with run-on sentences that lack small words). Token penalty scales based on original token’s probability.'
-								)}
-								<!-- <Form.Label>Repetition Penalty</Form.Label> -->
-								<span class="text-sm text-muted-foreground">{$formData.repetitionPenalty}</span>
-							</div>
-							<input type="hidden" {...props} bind:value={$formData.repetitionPenalty} />
-
-							<Slider
-								type="single"
-								{...props}
-								bind:value={$formData.repetitionPenalty}
-								min={0}
-								max={2}
-								step={0.1}
-							/>
-						{/snippet}
-					</Form.Control>
-					<!-- <Form.Description class="text-xs">Reduces repetition of token sequences.</Form.Description
-					> -->
-					<Form.FieldErrors />
-				</Form.Field>
-
-				<Form.Field {form} name="minP">
-					<Form.Control>
-						{#snippet children({ props })}
-							<div class="flex items-center justify-between">
-								{@render explanationTooltip(
-									'Min P',
-									'Represents the minimum probability for a token to be considered, relative to the probability of the most likely token. (The value changes depending on the confidence level of the most probable token.) If your Min-P is set to 0.1, that means it will only allow for tokens that are at least 1/10th as probable as the best possible option.'
-								)}
-								<!-- <Form.Label>Repetition Penalty</Form.Label> -->
-								<span class="text-sm text-muted-foreground">{$formData.minP}</span>
-							</div>
-							<input type="hidden" {...props} bind:value={$formData.minP} />
-
-							<Slider
-								type="single"
-								{...props}
-								bind:value={$formData.minP}
-								min={0}
-								max={1}
-								step={0.1}
-							/>
-						{/snippet}
-					</Form.Control>
-					<!-- <Form.Description class="text-xs">Reduces repetition of token sequences.</Form.Description
-					> -->
-					<Form.FieldErrors />
-				</Form.Field>
-
-				<Form.Field {form} name="topA">
-					<Form.Control>
-						{#snippet children({ props })}
-							<div class="flex items-center justify-between">
-								{@render explanationTooltip(
-									'Min P',
-									'Consider only the top tokens with “sufficiently high” probabilities based on the probability of the most likely token. Think of it like a dynamic Top-P. A lower Top-A value focuses the choices based on the highest probability token but with a narrower scope. A higher Top-A value does not necessarily affect the creativity of the output, but rather refines the filtering process based on the maximum probability.'
-								)}
-								<!-- <Form.Label>Repetition Penalty</Form.Label> -->
-								<span class="text-sm text-muted-foreground">{$formData.topA}</span>
-							</div>
-							<input type="hidden" {...props} bind:value={$formData.topA} />
-
-							<Slider
-								type="single"
-								{...props}
-								bind:value={$formData.topA}
-								min={0}
-								max={1}
-								step={0.1}
-							/>
-						{/snippet}
-					</Form.Control>
-					<!-- <Form.Description class="text-xs">Reduces repetition of token sequences.</Form.Description
-					> -->
-					<Form.FieldErrors />
-				</Form.Field>
-
 				<Form.Field {form} name="maxTokens">
 					<Form.Control>
 						{#snippet children({ props })}
@@ -494,6 +390,24 @@
 					> -->
 					<Form.FieldErrors />
 				</Form.Field>
+
+				<Form.Field {form} name="stopSequences">
+					<Form.Control>
+						{#snippet children({ props })}
+							<Form.Label>Stop Sequences</Form.Label>
+
+							<TagsInput
+								{...props}
+								bind:value={$formData.stopSequences}
+								placeholder="Add a message"
+							/>
+						{/snippet}
+					</Form.Control>
+					<Form.Description class="text-xs"
+						>Sequences that will stop the generation when encountered.</Form.Description
+					>
+					<Form.FieldErrors />
+				</Form.Field>
 			</Card.Content>
 		</Card.Root>
 	</div>
@@ -508,7 +422,7 @@
 				<Form.Control>
 					{#snippet children({ props })}
 						<Form.Label>API Key</Form.Label>
-						{#if data.apiKeys.length === 0}
+						{#if apiKeys.length === 0}
 							<div
 								class="flex w-fit items-center gap-2 rounded-md border border-input bg-background px-3 py-2"
 							>
@@ -522,11 +436,11 @@
 						{:else}
 							<Select.Root type="single" bind:value={$formData.apiKey} name={props.name}>
 								<Select.Trigger {...props} class="w-[180px]">
-									{data.apiKeys.find((key) => key.id === $formData.apiKey)?.name ??
+									{apiKeys.find((key) => key.id === $formData.apiKey)?.name ??
 										'Select an API key...'}
 								</Select.Trigger>
 								<Select.Content>
-									{#each data.apiKeys as apiKey (apiKey.id)}
+									{#each apiKeys as apiKey (apiKey.id)}
 										<Select.Item value={apiKey.id} label={apiKey.name} />
 									{/each}
 								</Select.Content>

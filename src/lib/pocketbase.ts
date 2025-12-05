@@ -37,9 +37,7 @@ export interface Model {
 	topK: number;
 	frequencyPenalty: number;
 	presencePenalty: number;
-	repetitionPenalty: number;
-	minP: number;
-	topA: number;
+	stopSequences: string[];
 	maxTokens: number;
 	creator: string;
 	apiKey: string;

@@ -1,6 +1,5 @@
 import { streamText, type UIMessage, convertToModelMessages, generateId } from 'ai';
 import { createOpenRouter } from '@openrouter/ai-sdk-provider';
-import { GOOGLE_GENERATIVE_AI_API_KEY, OPENROUTER_API_KEY } from '$env/static/private';
 import { error } from '@sveltejs/kit';
 import { getMostRecentUserMessage, getTrailingMessageId } from '$lib/utils/chat.js';
 import type { Chat, Model } from '$lib/pocketbase.js';
@@ -9,9 +8,7 @@ import { serializeNonPOJOs } from '$lib/utils';
 import { decryptApiKey } from '$lib/server/encryption.js';
 import { generateText } from 'ai';
 
-const google = createGoogleGenerativeAI({
-	apiKey: GOOGLE_GENERATIVE_AI_API_KEY
-});
+
 
 export async function POST({ request, locals, cookies }) {
 	const { id, messages }: { id: string; messages: UIMessage[] } = await request.json();
@@ -147,13 +144,18 @@ export async function POST({ request, locals, cookies }) {
 		messages: [userMessage]
 	});
 
+
 	const result = streamText({
 		model: openrouter.chat(modelDetails?.version),
-		maxOutputTokens: modelDetails.maxTokens,
-		temperature: modelDetails.temperature,
-		// topK: modelDetails.topK,
-		topP: modelDetails.topP,
-		frequencyPenalty: modelDetails.frequencyPenalty,
+		system: modelDetails.systemPrompt || undefined,
+		maxOutputTokens: modelDetails.maxTokens || undefined,
+		temperature: modelDetails.temperature || undefined,
+		topP: modelDetails.topP || undefined,
+		topK: modelDetails.topK || undefined,
+		presencePenalty: modelDetails.presencePenalty || undefined,
+		frequencyPenalty: modelDetails.frequencyPenalty || undefined,
+		stopSequences: modelDetails.stopSequences || undefined, // TODO
+		
 		messages: convertToModelMessages(messages)
 	});
 

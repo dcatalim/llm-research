@@ -38,6 +38,19 @@ export const load = (async ({ locals, params }) => {
 		}
 	};
 
+	const getChatsByModelId = async (modelId: string) => {
+		try {
+			const records = await locals.pb.collection('chats').getFullList({
+				filter: `model = "${modelId}"`,
+				sort: '-created'
+			});
+			return serializeNonPOJOs(records);
+		} catch (error) {
+			console.error('Error fetching chats:', error);
+			return error;
+		}
+	};
+
 	const model = await getModelbyId(modelId);
 
 	if (!model) {
@@ -47,6 +60,7 @@ export const load = (async ({ locals, params }) => {
 	return {
 		model: model,
 		apiKeys: await getUserApiKeys(),
+		chats: await getChatsByModelId(params.modelId),
 		form: await superValidate(model, zod4(modelConfigurationSchema))
 	};
 }) satisfies PageServerLoad;
@@ -63,7 +77,6 @@ export const actions: Actions = {
 		}
 
 		try {
-
 			const data = {
 				...form.data,
 				provider: 'openrouter',

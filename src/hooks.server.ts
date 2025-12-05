@@ -6,6 +6,10 @@ import { PUBLIC_POCKETBASE_URL } from '$env/static/public';
 import type { TypedPocketBase } from '$lib/pocketbase';
 
 export const handle: Handle = async ({ event, resolve }) => {
+	if (!PUBLIC_POCKETBASE_URL) {
+		throw new Error('Missing PocketBase URL environment variable');
+	}
+
 	event.locals.pb = new PocketBase(PUBLIC_POCKETBASE_URL) as TypedPocketBase
 
 	// load the store data from the request cookie string

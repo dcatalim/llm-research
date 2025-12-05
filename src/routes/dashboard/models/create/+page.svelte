@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { superForm } from 'sveltekit-superforms';
+	import { filesProxy, superForm } from 'sveltekit-superforms';
 	import ModelForm from '../model-form.svelte';
 	import type { PageProps } from './$types';
 	import { zod4Client } from 'sveltekit-superforms/adapters';

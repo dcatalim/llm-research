@@ -1,8 +1,10 @@
 <script lang="ts">
 	import * as Form from '$lib/components/ui/form/index.js';
 	import { Input } from '$lib/components/ui/input/index.js';
-	import { modelConfigurationSchema, type ModelConfigurationSchema } from '$lib/schemas';
-	import SuperDebug, { type SuperValidated, type Infer, superForm } from 'sveltekit-superforms';
+	import SuperDebug, {
+	fileProxy,
+		filesFieldProxy
+	} from 'sveltekit-superforms';
 	import { zod4Client } from 'sveltekit-superforms/adapters';
 	import * as Card from '$lib/components/ui/card';
 	import Save from '@lucide/svelte/icons/save';
@@ -84,9 +86,13 @@
 			triggerRef?.focus();
 		});
 	}
+
+	// const files = filesFieldProxy(form, 'files');
+	// const { values, valueErrors } = files;
+
 </script>
 
-<form method="POST" class="flex flex-col gap-4" use:enhance>
+<form method="POST" class="flex flex-col gap-4" enctype="multipart/form-data" use:enhance>
 	<div class="flex items-center justify-between">
 		<div>
 			<h1 class="text-3xl font-bold text-foreground">Model Configuration</h1>
@@ -226,6 +232,26 @@
 					</Form.Control>
 					<Form.FieldErrors />
 				</Form.Field>
+
+				<!-- <Form.Field {form} name="files">
+					<Form.Control>
+						{#snippet children({ props })}
+							<Form.Label>Files</Form.Label>
+							
+							<Input
+								type="file"
+								multiple
+								name="files"
+								accept="image/png, image/jpeg, application/pdf, text/plain"
+								bind:files={$values}
+							/>
+						{/snippet}
+					</Form.Control>
+					<Form.Description class="text-xs"
+						>Add some files to provide additional context for the model.</Form.Description
+					>
+					<Form.FieldErrors />
+				</Form.Field> -->
 			</Card.Content>
 		</Card.Root>
 

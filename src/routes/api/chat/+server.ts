@@ -37,8 +37,6 @@ export async function POST({ request, locals, cookies }) {
 
 	const modelDetails = (await getModelbyId(selectedChatModel || '')) as Model;
 
-	console.log('Model Details:', modelDetails);
-
 	const encryptedApiKey = modelDetails?.expand?.apiKey?.encryptedApiKey;
 
 	const decryptedApiKey = decryptApiKey(encryptedApiKey);
@@ -156,7 +154,7 @@ export async function POST({ request, locals, cookies }) {
 		frequencyPenalty: modelDetails.frequencyPenalty || undefined,
 		stopSequences: modelDetails.stopSequences || undefined, // TODO
 		
-		messages: convertToModelMessages(messages)
+		messages: convertToModelMessages(messages),
 	});
 
 	return result.toUIMessageStreamResponse({

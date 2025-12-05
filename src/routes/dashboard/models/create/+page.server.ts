@@ -1,4 +1,4 @@
-import { message, superValidate } from 'sveltekit-superforms';
+import { message, superValidate, fail} from 'sveltekit-superforms';
 import { zod4 } from 'sveltekit-superforms/adapters';
 import { modelConfigurationSchema } from '$lib/schemas';
 import type { PageServerLoad, Actions } from './$types.js';

@@ -8,15 +8,15 @@ const FileSchema = z.object({
 			message: 'File size should be less than 5MB'
 		})
 		// Update the file type based on the kind of files you want to accept
-		.refine((file) => ['image/jpeg', 'image/png', 'text/plain'].includes(file.type), {
-			message: 'File type should be TXT, JPEG or PNG'
+		.refine((file) => ['image/jpeg', 'image/png', 'text/plain', 'application/pdf'].includes(file.type), {
+			message: 'File type should be TXT, JPEG, PNG, or PDF'
 		})
 });
 
 export async function POST({ request, locals }) {
-	if (!locals.pb.authStore.isValid) {
-		error(401, 'Unauthorized');
-	}
+	// if (!locals.pb.authStore.isValid) {
+	// 	error(401, 'Unauthorized');
+	// }
 
 	if (request.body === null) {
 		error(400, 'Empty file received');

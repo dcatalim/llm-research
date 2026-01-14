@@ -150,7 +150,8 @@
 </script>
 
 <div class="relative flex w-full flex-col gap-4">
-	{#if mounted && chatClient.messages.length === 0 && files.length === 0 && uploadQueue.length === 0}
+	<!-- {#if mounted && chatClient.messages.length === 0 && files.length === 0 && uploadQueue.length === 0} -->
+	{#if mounted}
 		<SuggestedActions {user} {chatClient} {model} />
 	{/if}
 

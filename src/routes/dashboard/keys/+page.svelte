@@ -1,31 +1,17 @@
 <script lang="ts">
-	import type { PageProps } from './$types';
+	import type { PageData } from './$types';
+	import { invalidateAll } from '$app/navigation';
 	import { Button } from '$lib/components/ui/button';
 	import Plus from '@lucide/svelte/icons/plus';
 	import { Spinner } from '$lib/components/ui/spinner/index.js';
 	import KeyBox from './key-box.svelte';
 	import NoKeysFound from './no-keys-found.svelte';
+	import { superForm } from 'sveltekit-superforms';
+	import { zod4Client } from 'sveltekit-superforms/adapters';
+	import { apiKeyDeleteSchema } from '$lib/schemas';
 	import { toast } from 'svelte-sonner';
 
-	let { data }: PageProps = $props();
-
-	async function handleDelete(keyId: string) {
-		const formData = new FormData();
-		formData.append('id', keyId);
-
-		const response = await fetch('?/delete', {
-			method: 'POST',
-			body: formData
-		});
-
-		if (response.ok) {
-			toast.success('API key deleted successfully');
-			// Reload the page to refresh the list
-			window.location.reload();
-		} else {
-			toast.error('Failed to delete API key');
-		}
-	}
+	let { data }: { data: PageData } = $props();
 </script>
 
 <div class="flex items-center justify-between">
@@ -41,14 +27,14 @@
 	</div>
 </div>
 
-<div class="flex flex-col w-full items-center justify-center">
+<div class="flex w-full flex-col items-center justify-center">
 	{#await data.apiKeys}
 		<Spinner />
 	{:then apiKeys}
 		{#if apiKeys?.length > 0}
 			<div class="flex w-full flex-col gap-2">
 				{#each apiKeys as apiKey (apiKey.id)}
-					<KeyBox {apiKey} onDelete={handleDelete} />
+					<KeyBox {apiKey} {data} />
 				{/each}
 			</div>
 		{:else}

@@ -10,7 +10,6 @@ export const load = (async ({ locals }) => {
 	}
 
 	return {
-		title: 'Iniciar Sessão',
 		form: await superValidate(zod4(loginSchema))
 	};
 }) satisfies PageServerLoad;
@@ -21,19 +20,13 @@ export const actions: Actions = {
 
 		if (!form.valid) {
 			// Will return fail(400, { form }) since form isn't valid
-			return message(form, 'Formulário Inválido');
+			return message(form, 'Invalid form');
 		}
 
 		try {
 			await locals.pb.collection('users').authWithPassword(form.data.email, form.data.password);
 
-			if (!locals.pb.authStore?.record?.verified) {
-				locals.pb.authStore.clear();
-
-				return message(form, 'Tem de verificar o seu email antes de fazer login', {
-					status: 403
-				});
-			}
+			
 			// redirect happens because they become logged in and cant access this page
 		} catch (err) {
 			console.log('Error: ', err);

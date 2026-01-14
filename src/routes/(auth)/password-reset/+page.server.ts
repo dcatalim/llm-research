@@ -10,7 +10,6 @@ export const load = (async ({locals}) => {
 	}
 
 	return {
-		title: "Recuperar Password",
 		form: await superValidate(zod4(resetPasswordSchema))
 	};
 }) satisfies PageServerLoad;
@@ -21,13 +20,13 @@ export const actions: Actions = {
 
 		if (!form.valid) {
 			// Will return fail(400, { form }) since form isn't valid
-			return message(form, 'Formulário Inválido');
+			return message(form, 'Invalid form');
 		}
 
 		try {
 			await locals.pb.collection('users').requestPasswordReset(form.data.email);
 
-			return message(form, 'Email enviado com sucesso!');
+			return message(form, 'Email was sent successfully!');
 		} catch (err) {
 			console.log('Error: ', err);
 

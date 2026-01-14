@@ -1,6 +1,9 @@
-import { redirect, fail } from '@sveltejs/kit';
+import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
 import { serializeNonPOJOs } from '$lib/utils';
+import { message, superValidate } from 'sveltekit-superforms';
+import { zod4 } from 'sveltekit-superforms/adapters';
+import { apiKeyDeleteSchema } from '$lib/schemas';
 
 export const load = (async ({ locals }) => {
 	if (!locals.pb.authStore.isValid) {
@@ -21,29 +24,31 @@ export const load = (async ({ locals }) => {
 	};
 
 	return {
-		apiKeys: getUserApiKeys()
+		apiKeys: getUserApiKeys(),
+		form: await superValidate(zod4(apiKeyDeleteSchema))
 	};
 }) satisfies PageServerLoad;
 
 export const actions: Actions = {
-	delete: async ({ locals, request }) => {
-		if (!locals.pb.authStore.isValid) {
-			throw redirect(303, '/login');
-		}
+	delete: async ({ request, locals }) => {
+		const form = await superValidate(request, zod4(apiKeyDeleteSchema));
 
-		const formData = await request.formData();
-		const keyId = formData.get('id')?.toString();
-
-		if (!keyId) {
-			return fail(400, { message: 'Invalid key ID' });
+		if (!form.valid) {
+			// Will return fail(400, { form }) since form isn't valid
+			return message(form, 'Invalid form');
 		}
 
 		try {
-			await locals.pb.collection('api_keys').delete(keyId);
-			return { success: true };
-		} catch (error) {
-			console.error('Error deleting API key:', error);
-			return fail(500, { message: 'Failed to delete API key' });
+			await locals.pb.collection('api_keys').delete(form.data.id);
+
+			return message(form, 'API key deleted successfully');
+		} catch (err) {
+			console.log('Error: ', err);
+
+			if (err?.message && err?.status) {
+				// Will return fail and set form.valid = false, since status is >= 400
+				return message(form, err?.message, { status: err?.status });
+			}
 		}
 	}
 };

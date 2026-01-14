@@ -10,7 +10,6 @@ export const load = (async ({ locals }) => {
 	}
 
 	return {
-		title: "Register",
 		form: await superValidate(zod4(registerSchema))
 	};
 }) satisfies PageServerLoad;
@@ -33,13 +32,10 @@ export const actions: Actions = {
 		};
 
 		try {
-			const user = await locals.pb.collection('users').create(data);
-
-			await locals.pb.collection('users').requestVerification(form.data.email);
+			await locals.pb.collection('users').create(data);
 
 			await locals.pb.collection('users').authWithPassword(form.data.email, form.data.password);
 
-			return message(form, 'Verify your email address to complete registration.');
 			// redirect happens because they become logged in and cant access this page
 		} catch (err) {
 			console.log('Error: ', err);

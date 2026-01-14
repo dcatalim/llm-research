@@ -62,3 +62,8 @@ export const apiKeySchema = z.object({
 	apiKey: z.string().nonempty()
 });
 export type ApiKeySchema = typeof apiKeySchema;
+
+export const apiKeyDeleteSchema = z.object({
+	id: z.string().nonempty()
+});
+export type ApiKeyDeleteSchema = typeof apiKeyDeleteSchema;

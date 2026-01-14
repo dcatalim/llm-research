@@ -22,7 +22,7 @@ export const load = (async ({ locals, params }) => {
 		try {
 			const records = await locals.pb.collection('chats').getFullList({
 				filter: `model = "${modelId}"`,
-				sort: '-created'
+				sort: '-created',
 			});
 			return serializeNonPOJOs(records);
 		} catch (error) {

@@ -83,61 +83,177 @@
 	});
 
 	// Download functions
-	function downloadJSON() {
-		const dataToExport = {
-			model: {
-				name: model.name,
-				id: model.id,
-				provider: model.provider,
-				version: model.version,
-				created: model.created,
-				systemPrompt: model.systemPrompt,
-				instructions: model.instructions
-			},
-			chats: chats.map((chat) => ({
-				id: chat.id,
-				uuid: chat.uuid,
-				title: chat.title,
-				created: chat.created,
-				updated: chat.updated,
-				userId: chat.userId
-			})),
-			analytics: analytics(),
-			exportDate: new Date().toISOString()
-		};
+	async function downloadJSON() {
+		try {
+			// Fetch all chats with their messages
+			const chatsWithMessages = await Promise.all(
+				chats.map(async (chat) => {
+					try {
+						const response = await fetch(`/api/chat/${chat.id}/download`);
+						if (!response.ok) {
+							throw new Error('Failed to fetch chat data');
+						}
+						const chatData = await response.json();
+						return {
+							id: chat.id,
+							uuid: chat.uuid,
+							title: chat.title,
+							created: chat.created,
+							updated: chat.updated,
+							userId: chat.userId,
+							messages: chatData.messages,
+							messageCount: chatData.messageCount
+						};
+					} catch (error) {
+						console.error(`Error fetching chat ${chat.id}:`, error);
+						return {
+							id: chat.id,
+							uuid: chat.uuid,
+							title: chat.title,
+							created: chat.created,
+							updated: chat.updated,
+							userId: chat.userId,
+							messages: [],
+							messageCount: 0,
+							error: 'Failed to fetch messages'
+						};
+					}
+				})
+			);
 
-		const blob = new Blob([JSON.stringify(dataToExport, null, 2)], { type: 'application/json' });
-		const url = URL.createObjectURL(blob);
-		const a = document.createElement('a');
-		a.href = url;
-		a.download = `${model.name.replace(/\s+/g, '_')}_analytics_${format(new Date(), 'yyyy-MM-dd')}.json`;
-		a.click();
-		URL.revokeObjectURL(url);
+			const dataToExport = {
+				model: {
+					name: model.name,
+					id: model.id,
+					provider: model.provider,
+					version: model.version,
+					created: model.created,
+					systemPrompt: model.systemPrompt,
+					instructions: model.instructions
+				},
+				chats: chatsWithMessages,
+				analytics: analytics(),
+				exportDate: new Date().toISOString()
+			};
+
+			const blob = new Blob([JSON.stringify(dataToExport, null, 2)], { type: 'application/json' });
+			const url = URL.createObjectURL(blob);
+			const a = document.createElement('a');
+			a.href = url;
+			a.download = `${model.name.replace(/\s+/g, '_')}_analytics_${format(new Date(), 'yyyy-MM-dd')}.json`;
+			a.click();
+			URL.revokeObjectURL(url);
+		} catch (error) {
+			console.error('Error downloading JSON:', error);
+			alert('Failed to download data. Please try again.');
+		}
 	}
 
-	function downloadCSV() {
-		const headers = ['Chat ID', 'UUID', 'Title', 'Created', 'Updated', 'User ID'];
-		const rows = chats.map((chat) => [
-			chat.id,
-			chat.uuid,
-			chat.title,
-			format(new Date(chat.created), 'yyyy-MM-dd HH:mm:ss'),
-			format(new Date(chat.updated), 'yyyy-MM-dd HH:mm:ss'),
-			chat.userId
-		]);
+	async function downloadCSV() {
+		try {
+			// Fetch all chats with their messages
+			const chatsWithMessages = await Promise.all(
+				chats.map(async (chat) => {
+					try {
+						const response = await fetch(`/api/chat/${chat.id}/download`);
+						if (!response.ok) {
+							throw new Error('Failed to fetch chat data');
+						}
+						const chatData = await response.json();
+						return {
+							chat,
+							messages: chatData.messages
+						};
+					} catch (error) {
+						console.error(`Error fetching chat ${chat.id}:`, error);
+						return {
+							chat,
+							messages: []
+						};
+					}
+				})
+			);
 
-		const csv = [
-			headers.join(','),
-			...rows.map((row) => row.map((cell) => `"${cell}"`).join(','))
-		].join('\n');
+			// Create CSV with chat and message information
+			const headers = [
+				'Chat ID',
+				'UUID',
+				'Title',
+				'Created',
+				'Updated',
+				'User ID',
+				'Message Count',
+				'Message Role',
+				'Message Content',
+				'Message Created'
+			];
 
-		const blob = new Blob([csv], { type: 'text/csv' });
-		const url = URL.createObjectURL(blob);
-		const a = document.createElement('a');
-		a.href = url;
-		a.download = `${model.name.replace(/\s+/g, '_')}_chats_${format(new Date(), 'yyyy-MM-dd')}.csv`;
-		a.click();
-		URL.revokeObjectURL(url);
+			const rows: string[][] = [];
+
+			// For each chat, create a row for each message
+			chatsWithMessages.forEach(({ chat, messages }) => {
+				if (messages.length === 0) {
+					// If no messages, add a single row with chat info
+					rows.push([
+						chat.id,
+						chat.uuid,
+						chat.title,
+						format(new Date(chat.created), 'yyyy-MM-dd HH:mm:ss'),
+						format(new Date(chat.updated), 'yyyy-MM-dd HH:mm:ss'),
+						chat.userId,
+						'0',
+						'',
+						'',
+						''
+					]);
+				} else {
+					// Add a row for each message
+					messages.forEach((message: any, index: number) => {
+						const messageContent =
+							Array.isArray(message.parts) && message.parts.length > 0
+								? message.parts.map((part: any) => {
+										if (typeof part === 'string') return part;
+										if (part?.text) return part.text;
+										if (part?.type === 'image') return '[Image]';
+										if (part?.type === 'file') return '[File]';
+										return JSON.stringify(part);
+									}).join(' ')
+								: '';
+
+						rows.push([
+							chat.id,
+							chat.uuid,
+							chat.title,
+							format(new Date(chat.created), 'yyyy-MM-dd HH:mm:ss'),
+							format(new Date(chat.updated), 'yyyy-MM-dd HH:mm:ss'),
+							chat.userId,
+							messages.length.toString(),
+							message.role || '',
+							messageContent,
+							message.created ? format(new Date(message.created), 'yyyy-MM-dd HH:mm:ss') : ''
+						]);
+					});
+				}
+			});
+
+			const csv = [
+				headers.join(','),
+				...rows.map((row) =>
+					row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(',')
+				)
+			].join('\n');
+
+			const blob = new Blob([csv], { type: 'text/csv' });
+			const url = URL.createObjectURL(blob);
+			const a = document.createElement('a');
+			a.href = url;
+			a.download = `${model.name.replace(/\s+/g, '_')}_chats_${format(new Date(), 'yyyy-MM-dd')}.csv`;
+			a.click();
+			URL.revokeObjectURL(url);
+		} catch (error) {
+			console.error('Error downloading CSV:', error);
+			alert('Failed to download data. Please try again.');
+		}
 	}
 
 	// Download individual chat with messages

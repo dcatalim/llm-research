@@ -64,7 +64,7 @@ export async function POST({ request, locals, cookies }) {
 			return result.text;
 		} catch (e) {
 			console.error('Error generating title:', e.message);
-			const slicedMessage = message.parts[0]?.text?.slice(0, 80);
+			const slicedMessage = message.parts[0]?.text?.slice(0, 80)?.trim();
 			if (slicedMessage) {
 				return slicedMessage; // Fallback: use the first 80 characters of the user's message
 			}

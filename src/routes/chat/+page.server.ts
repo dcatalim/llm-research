@@ -1,9 +1,9 @@
 import { redirect } from '@sveltejs/kit';
-import type { LayoutServerLoad } from './$types';
+import type { PageServerLoad } from './$types';
 import { serializeNonPOJOs } from '$lib/utils';
 
 export const load = (async ({ cookies, locals }) => {
-    let modelId = cookies.get('selected-model');
+	let modelId = cookies.get('selected-model');
 
 	if (!modelId) {
 		// TODO: show error message
@@ -23,5 +23,4 @@ export const load = (async ({ cookies, locals }) => {
 	return {
 		model: await getModelbyId(modelId)
 	};
-
-}) satisfies LayoutServerLoad;
+}) satisfies PageServerLoad;

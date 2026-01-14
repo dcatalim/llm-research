@@ -5,7 +5,6 @@
 
 	let { data }: PageProps = $props();
 
-	$inspect(data);
 </script>
 
 <Chat

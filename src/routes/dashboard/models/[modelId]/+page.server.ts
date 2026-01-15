@@ -1,5 +1,4 @@
 import { serializeNonPOJOs } from '$lib/utils';
-import { error } from 'console';
 import type { PageServerLoad } from './$types';
 import { redirect } from '@sveltejs/kit';
 

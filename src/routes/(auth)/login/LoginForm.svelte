@@ -44,14 +44,14 @@
 			{#snippet children({ props })}
 				<div class="flex items-center justify-between">
 					<Form.Label>Password</Form.Label>
-					<Button
+					<!-- <Button
 						href="/password-reset"
 						variant="link"
 						size="sm"
 						class="link intent-info variant-ghost text-sm"
 					>
 						Forgot password?
-					</Button>
+					</Button> -->
 				</div>
 				<Password.Root>
 					<Password.Input {...props} bind:value={$formData.password} required>

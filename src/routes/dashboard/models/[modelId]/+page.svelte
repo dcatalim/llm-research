@@ -174,44 +174,31 @@
 				})
 			);
 
-			// Create CSV with chat and message information
+			// Create CSV with template format
 			const headers = [
-				'Chat ID',
-				'UUID',
-				'Title',
-				'Created',
-				'Updated',
-				'User ID',
-				'Message Count',
-				'Message Role',
-				'Message Content',
-				'Message Created'
+				'public_id',
+				'role',
+				'text',
+				// 'products',
+				'dialog_id',
+				'dialog_state',
+				'id',
+				'created_at',
+				// 'feedback_thumbs',
+				// 'feedback_text',
+				// 'suggested_replies'
 			];
 
 			const rows: string[][] = [];
 
 			// For each chat, create a row for each message
 			chatsWithMessages.forEach(({ chat, messages }) => {
-				if (messages.length === 0) {
-					// If no messages, add a single row with chat info
-					rows.push([
-						chat.id,
-						chat.uuid,
-						chat.title,
-						format(new Date(chat.created), 'yyyy-MM-dd HH:mm:ss'),
-						format(new Date(chat.updated), 'yyyy-MM-dd HH:mm:ss'),
-						chat.userId,
-						'0',
-						'',
-						'',
-						''
-					]);
-				} else {
-					// Add a row for each message
-					messages.forEach((message: any, index: number) => {
-						const messageContent =
-							Array.isArray(message.parts) && message.parts.length > 0
-								? message.parts.map((part: any) => {
+				// Build dialog_state with all messages
+				const dialogState = {
+					messages: messages.map((msg: any) => {
+						const content =
+							Array.isArray(msg.parts) && msg.parts.length > 0
+								? msg.parts.map((part: any) => {
 										if (typeof part === 'string') return part;
 										if (part?.text) return part.text;
 										if (part?.type === 'image') return '[Image]';
@@ -219,21 +206,45 @@
 										return JSON.stringify(part);
 									}).join(' ')
 								: '';
+						
+						return {
+							role: msg.role || 'user',
+							content: content,
+							name: null
+						};
+					}),
+					products_by_url: {}
+				};
 
-						rows.push([
-							chat.id,
-							chat.uuid,
-							chat.title,
-							format(new Date(chat.created), 'yyyy-MM-dd HH:mm:ss'),
-							format(new Date(chat.updated), 'yyyy-MM-dd HH:mm:ss'),
-							chat.userId,
-							messages.length.toString(),
-							message.role || '',
-							messageContent,
-							message.created ? format(new Date(message.created), 'yyyy-MM-dd HH:mm:ss') : ''
-						]);
-					});
-				}
+				// Add a row for each message
+				messages.forEach((message: any, index: number) => {
+					const messageContent =
+						Array.isArray(message.parts) && message.parts.length > 0
+							? message.parts.map((part: any) => {
+									if (typeof part === 'string') return part;
+									if (part?.text) return part.text;
+									if (part?.type === 'image') return '[Image]';
+									if (part?.type === 'file') return '[File]';
+									return JSON.stringify(part);
+								}).join(' ')
+							: '';
+
+					rows.push([
+						message.id || chat.uuid || '', // public_id
+						message.role || 'user', // role
+						messageContent, // text
+						// '', // products
+						chat.id, // dialog_id
+						JSON.stringify(dialogState), // dialog_state
+						message.id || '', // id
+						message.created
+							? format(new Date(message.created), 'yyyy-MM-dd HH:mm:ss.SSS xxx')
+							: format(new Date(chat.created), 'yyyy-MM-dd HH:mm:ss.SSS xxx'), // created_at
+						// '', // feedback_thumbs
+						// '', // feedback_text
+						// '' // suggested_replies
+					]);
+				});
 			});
 
 			const csv = [
@@ -247,7 +258,7 @@
 			const url = URL.createObjectURL(blob);
 			const a = document.createElement('a');
 			a.href = url;
-			a.download = `${model.name.replace(/\s+/g, '_')}_chats_${format(new Date(), 'yyyy-MM-dd')}.csv`;
+			a.download = `${model.name.replace(/\s+/g, '_')}_messages_${format(new Date(), 'yyyy-MM-dd')}.csv`;
 			a.click();
 			URL.revokeObjectURL(url);
 		} catch (error) {

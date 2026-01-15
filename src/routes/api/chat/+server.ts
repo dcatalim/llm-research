@@ -38,7 +38,7 @@ export async function POST({ request, locals, cookies }) {
 	const encryptedApiKey = modelDetails?.expand?.apiKey?.encryptedApiKey;
 
 	const decryptedApiKey = decryptApiKey(encryptedApiKey);
-
+	
 	const openrouter = createOpenRouter({
 		apiKey: decryptedApiKey
 	});

@@ -79,6 +79,8 @@
 		"@ai-sdk/google": "^2.0.31",
 		"@openrouter/ai-sdk-provider": "^1.2.1",
 		"date-fns": "^4.1.0",
+		"pdf-parse": "^2.4.5",
+		"pdfjs-dist": "^5.4.530",
 		"pocketbase": "^0.26.3",
 		"svelte-exmarkdown": "^5.0.2"
 	}

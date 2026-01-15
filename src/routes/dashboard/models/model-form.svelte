@@ -1,10 +1,7 @@
 <script lang="ts">
 	import * as Form from '$lib/components/ui/form/index.js';
 	import { Input } from '$lib/components/ui/input/index.js';
-	import SuperDebug, {
-	fileProxy,
-		filesFieldProxy
-	} from 'sveltekit-superforms';
+	import SuperDebug, { fileProxy, filesFieldProxy, filesProxy } from 'sveltekit-superforms';
 	import { zod4Client } from 'sveltekit-superforms/adapters';
 	import * as Card from '$lib/components/ui/card';
 	import Save from '@lucide/svelte/icons/save';
@@ -87,9 +84,86 @@
 		});
 	}
 
-	// const files = filesFieldProxy(form, 'files');
-	// const { values, valueErrors } = files;
+	// File upload handling
+	let fileInputRef = $state<HTMLInputElement | null>(null);
+	let uploadQueue = $state<string[]>([]);
 
+	async function handleFileChange(
+		event: Event & {
+			currentTarget: EventTarget & HTMLInputElement;
+		}
+	) {
+		event.preventDefault();
+
+		const attachments = Array.from(event.currentTarget.files || []);
+		uploadQueue = attachments.map((file) => file.name);
+
+		try {
+			const uploadPromises = attachments.map(async (file) => {
+				try {
+					let content = '';
+					
+					if (file.type === 'text/plain') {
+						// Read text files directly
+						content = await file.text();
+					} else if (file.type === 'application/pdf') {
+						// Use API endpoint to parse PDF
+						const formData = new FormData();
+						formData.append('file', file);
+
+						const response = await fetch('/api/pdf2txt', {
+							method: 'POST',
+							body: formData
+						});
+
+						if (!response.ok) {
+							throw new Error('Failed to parse PDF');
+						}
+
+						const result = await response.json();
+						content = result.text;
+					}
+					
+					return content;
+				} catch (error) {
+					console.error(`Error reading file ${file.name}:`, error);
+					toast.error(`Failed to read ${file.name}`);
+					return null;
+				}
+			});
+
+			const uploadedFiles = await Promise.all(uploadPromises);
+			const successfullyUploadedFiles = uploadedFiles.filter(
+				(file) => file !== null && file !== ''
+			);
+
+			// Check for duplicates
+			const existingContents = new Set($formData.filesContext || []);
+			const newFiles = successfullyUploadedFiles.filter(
+				(content) => !existingContents.has(content)
+			);
+
+			if (newFiles.length < successfullyUploadedFiles.length) {
+				const duplicates = successfullyUploadedFiles.length - newFiles.length;
+				toast.warning(`${duplicates} duplicate file(s) skipped`);
+			}
+
+			// Add to filesContext
+			$formData.filesContext = [
+				...($formData.filesContext || []),
+				...newFiles
+			];
+			
+			if (newFiles.length > 0) {
+				toast.success(`Uploaded ${newFiles.length} file(s)`);
+			}
+		} catch (error) {
+			console.error('Error uploading files!', error);
+			toast.error('Failed to upload files');
+		} finally {
+			uploadQueue = [];
+		}
+	}
 </script>
 
 <form method="POST" class="flex flex-col gap-4" enctype="multipart/form-data" use:enhance>
@@ -233,17 +307,66 @@
 					<Form.FieldErrors />
 				</Form.Field>
 
-				<!-- <Form.Field {form} name="files">
+				<Form.Field {form} name="filesContext">
 					<Form.Control>
 						{#snippet children({ props })}
 							<Form.Label>Files</Form.Label>
-							
+							<input type="hidden" {...props} />
+							<div class="mb-2 flex flex-col gap-2">
+								{#each $formData.filesContext as fileContent, index (fileContent)}
+									<div
+										class="flex items-center justify-between rounded-md border border-input bg-background px-3 py-2"
+									>
+										<Popover.Root>
+											<Popover.Trigger class="flex-1 text-left">
+												<span class="text-sm truncate">File {index + 1} - {fileContent.length} characters</span>
+											</Popover.Trigger>
+											<Popover.Content class="w-[600px] max-h-[400px]">
+												<div class="space-y-2">
+													<h4 class="font-medium leading-none">File {index + 1}</h4>
+													<p class="text-sm text-muted-foreground">
+														{fileContent.length} characters
+													</p>
+													<div class="max-h-[300px] overflow-auto">
+														<pre class="text-xs whitespace-pre-wrap break-words">{fileContent}</pre>
+													</div>
+												</div>
+											</Popover.Content>
+										</Popover.Root>
+										<Button
+											variant="ghost"
+											size="icon"
+											class="opacity-50 hover:opacity-80"
+											onclick={() => {
+												$formData.filesContext = $formData.filesContext.filter(
+													(_, i) => i !== index
+												);
+											}}
+										>
+											&times;
+										</Button>
+									</div>
+								{/each}
+								{#if uploadQueue.length > 0}
+									{#each uploadQueue as fileName (fileName)}
+										<div
+											class="flex items-center justify-between rounded-md border border-input bg-background px-3 py-2"
+										>
+											<span class="text-sm truncate">{fileName} - Uploading...</span>
+											<Spinner class="h-4 w-4" />
+										</div>
+									{/each}
+								{/if}
+							</div>
+
+							<!-- File input -->
 							<Input
 								type="file"
 								multiple
 								name="files"
-								accept="image/png, image/jpeg, application/pdf, text/plain"
-								bind:files={$values}
+								accept="application/pdf, text/plain"
+								bind:this={fileInputRef}
+								onchange={handleFileChange}
 							/>
 						{/snippet}
 					</Form.Control>
@@ -251,7 +374,7 @@
 						>Add some files to provide additional context for the model.</Form.Description
 					>
 					<Form.FieldErrors />
-				</Form.Field> -->
+				</Form.Field>
 			</Card.Content>
 		</Card.Root>
 

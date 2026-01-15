@@ -8,8 +8,6 @@ import { serializeNonPOJOs } from '$lib/utils';
 import { decryptApiKey } from '$lib/server/encryption.js';
 import { generateText } from 'ai';
 
-
-
 export async function POST({ request, locals, cookies }) {
 	const { id, messages }: { id: string; messages: UIMessage[] } = await request.json();
 
@@ -142,10 +140,18 @@ export async function POST({ request, locals, cookies }) {
 		messages: [userMessage]
 	});
 
+	const documentationMessage = modelDetails?.filesContext
+		? `Use the provided DOCUMENTATION below to answer the user's questions. 
+      If the answer is not in the documentation, state that you don't know.
+
+      <DOCUMENTATION>
+      ${modelDetails?.filesContext}
+      </DOCUMENTATION>`
+		: undefined;
 
 	const result = streamText({
 		model: openrouter.chat(modelDetails?.version),
-		system: modelDetails.systemPrompt || undefined,
+		system: (modelDetails.systemPrompt || undefined) + (documentationMessage || ''),
 		maxOutputTokens: modelDetails.maxTokens || undefined,
 		temperature: modelDetails.temperature || undefined,
 		topP: modelDetails.topP || undefined,
@@ -153,8 +159,8 @@ export async function POST({ request, locals, cookies }) {
 		presencePenalty: modelDetails.presencePenalty || undefined,
 		frequencyPenalty: modelDetails.frequencyPenalty || undefined,
 		stopSequences: modelDetails.stopSequences || undefined, // TODO
-		
-		messages: convertToModelMessages(messages),
+
+		messages: convertToModelMessages(messages)
 	});
 
 	return result.toUIMessageStreamResponse({

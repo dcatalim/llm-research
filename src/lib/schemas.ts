@@ -47,13 +47,7 @@ export const modelConfigurationSchema = z.object({
 	apiKey: z.string().nonempty(),
 	suggestedMessages: z.array(z.string()).default([]),
 	stopSequences: z.array(z.string()).default([]),
-	files: z
-		.file()
-		.min(10_000)
-		.max(1_000_000)
-		.mime(['image/png', 'image/jpeg', 'application/pdf', 'text/plain'])
-		.array()
-		.optional()
+	filesContext: z.array(z.string()).optional(),
 });
 export type ModelConfigurationSchema = typeof modelConfigurationSchema;
 

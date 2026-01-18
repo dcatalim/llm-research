@@ -37,7 +37,7 @@
 		const totalChats = filteredChats.length;
 
 		// Unique users
-		const uniqueUsers = new Set(filteredChats.map((chat) => chat.userId)).size;
+		const uniqueUsers = new Set(filteredChats.map((chat) => chat.browserId)).size;
 
 		// Average chats per day
 		const days =
@@ -100,7 +100,8 @@
 							title: chat.title,
 							created: chat.created,
 							updated: chat.updated,
-							userId: chat.userId,
+							// userId: chat.userId,
+							browserId: chat.browserId,
 							messages: chatData.messages,
 							messageCount: chatData.messageCount
 						};
@@ -112,7 +113,8 @@
 							title: chat.title,
 							created: chat.created,
 							updated: chat.updated,
-							userId: chat.userId,
+							// userId: chat.userId,
+							browserId: chat.browserId,
 							messages: [],
 							messageCount: 0,
 							error: 'Failed to fetch messages'
@@ -179,11 +181,11 @@
 				'public_id',
 				'role',
 				'text',
-				// 'products',
+				'browser_id',
 				'dialog_id',
 				'dialog_state',
 				'id',
-				'created_at',
+				'created_at'
 				// 'feedback_thumbs',
 				// 'feedback_text',
 				// 'suggested_replies'
@@ -198,15 +200,17 @@
 					messages: messages.map((msg: any) => {
 						const content =
 							Array.isArray(msg.parts) && msg.parts.length > 0
-								? msg.parts.map((part: any) => {
-										if (typeof part === 'string') return part;
-										if (part?.text) return part.text;
-										if (part?.type === 'image') return '[Image]';
-										if (part?.type === 'file') return '[File]';
-										return JSON.stringify(part);
-									}).join(' ')
+								? msg.parts
+										.map((part: any) => {
+											if (typeof part === 'string') return part;
+											if (part?.text) return part.text;
+											if (part?.type === 'image') return '[Image]';
+											if (part?.type === 'file') return '[File]';
+											return JSON.stringify(part);
+										})
+										.join(' ')
 								: '';
-						
+
 						return {
 							role: msg.role || 'user',
 							content: content,
@@ -220,26 +224,28 @@
 				messages.forEach((message: any, index: number) => {
 					const messageContent =
 						Array.isArray(message.parts) && message.parts.length > 0
-							? message.parts.map((part: any) => {
-									if (typeof part === 'string') return part;
-									if (part?.text) return part.text;
-									if (part?.type === 'image') return '[Image]';
-									if (part?.type === 'file') return '[File]';
-									return JSON.stringify(part);
-								}).join(' ')
+							? message.parts
+									.map((part: any) => {
+										if (typeof part === 'string') return part;
+										if (part?.text) return part.text;
+										if (part?.type === 'image') return '[Image]';
+										if (part?.type === 'file') return '[File]';
+										return JSON.stringify(part);
+									})
+									.join(' ')
 							: '';
 
 					rows.push([
 						message.id || chat.uuid || '', // public_id
 						message.role || 'user', // role
 						messageContent, // text
-						// '', // products
+						chat.browserId || '', // browserId
 						chat.id, // dialog_id
 						JSON.stringify(dialogState), // dialog_state
 						message.id || '', // id
 						message.created
 							? format(new Date(message.created), 'yyyy-MM-dd HH:mm:ss.SSS xxx')
-							: format(new Date(chat.created), 'yyyy-MM-dd HH:mm:ss.SSS xxx'), // created_at
+							: format(new Date(chat.created), 'yyyy-MM-dd HH:mm:ss.SSS xxx') // created_at
 						// '', // feedback_thumbs
 						// '', // feedback_text
 						// '' // suggested_replies
@@ -249,9 +255,7 @@
 
 			const csv = [
 				headers.join(','),
-				...rows.map((row) =>
-					row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(',')
-				)
+				...rows.map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(','))
 			].join('\n');
 
 			const blob = new Blob([csv], { type: 'text/csv' });
@@ -496,7 +500,7 @@
 								<Table.Head>Title</Table.Head>
 								<Table.Head>Created</Table.Head>
 								<Table.Head>Updated</Table.Head>
-								<Table.Head>UUID</Table.Head>
+								<Table.Head>Browser ID</Table.Head>
 								<Table.Head class="text-right">Actions</Table.Head>
 							</Table.Row>
 						</Table.Header>
@@ -514,8 +518,15 @@
 										{format(new Date(chat.updated), 'MMM dd, yyyy')}
 									</Table.Cell>
 									<Table.Cell>
-										<Badge variant="outline" class="font-mono text-xs">
-											{chat.uuid.slice(0, 8)}...
+										<Badge
+											variant="outline"
+											class="max-w-[100px] cursor-pointer font-mono text-xs "
+											onclick={() => navigator.clipboard.writeText(chat.browserId)}
+										>
+											<span class="sr-only">Browser ID:</span>
+											<p class="truncate">
+												{chat.browserId}
+											</p>
 										</Badge>
 									</Table.Cell>
 									<Table.Cell class="text-right">

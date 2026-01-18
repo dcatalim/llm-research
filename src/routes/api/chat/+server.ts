@@ -82,7 +82,8 @@ export async function POST({ request, locals, cookies }) {
 				uuid: id,
 				title: title,
 				model: selectedChatModel,
-				userId: locals.user?.id ?? undefined
+				userId: locals.user?.id ?? undefined,
+				browserId: cookies.get('browser-id') ?? undefined
 			};
 
 			const record = await locals.pb.collection('chats').create(data);

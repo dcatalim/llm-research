@@ -20,6 +20,7 @@ export interface Chat {
 	uuid: string;
 	title: string;
 	userId: string;
+	browserId: string;
 	model: string;
 	created: Date;
 	updated: Date;

@@ -1,175 +1,214 @@
-import { streamText, type UIMessage, convertToModelMessages, generateId } from 'ai';
+import { streamText, type UIMessage, convertToModelMessages, generateId, generateText } from 'ai';
 import { createOpenRouter } from '@openrouter/ai-sdk-provider';
 import { error } from '@sveltejs/kit';
-import { getMostRecentUserMessage, getTrailingMessageId } from '$lib/utils/chat.js';
+import { getMostRecentUserMessage } from '$lib/utils/chat.js';
 import type { Chat, Model } from '$lib/pocketbase.js';
-import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { serializeNonPOJOs } from '$lib/utils';
 import { decryptApiKey } from '$lib/server/encryption.js';
-import { generateText } from 'ai';
+import type { RequestEvent } from './$types';
 
-export async function POST({ request, locals, cookies }) {
-	const { id, messages }: { id: string; messages: UIMessage[] } = await request.json();
+// Constants
+const TITLE_GENERATION_SYSTEM_PROMPT = `
+- you will generate a short title based on the first message a user begins a conversation with
+- ensure it is not more than 80 characters long
+- the title should be a summary of the user's message
+- do not use quotes or colons`;
 
-	const selectedChatModel = cookies.get('selected-model');
+const MAX_TITLE_LENGTH = 60;
 
-	// if (!locals.pb.authStore.isValid) {
-	// 	error(401, 'Unauthorized');
-	// }
-
-	if (!selectedChatModel) {
-		error(401, 'No chat model selected');
-	}
-
-	const getModelbyId = async (modelId: string) => {
-		try {
-			const record = await locals.pb.collection('models').getOne(modelId, {
-				expand: 'apiKey'
-			});
-			return serializeNonPOJOs(record as Model);
-		} catch (error) {
-			console.error('Error fetching model:', error);
-			return error;
-		}
-	};
-
-	const modelDetails = (await getModelbyId(selectedChatModel || '')) as Model;
-
-	const encryptedApiKey = modelDetails?.expand?.apiKey?.encryptedApiKey;
-
-	const decryptedApiKey = decryptApiKey(encryptedApiKey);
-	
-	const openrouter = createOpenRouter({
-		apiKey: decryptedApiKey
-	});
-
-	async function generateTitleFromUserMessage({
-		message
-	}: {
-		message: UIMessage;
-	}): Promise<string> {
-		try {
-			const result = await generateText({
-				model: openrouter.chat(modelDetails?.version),
-				system: `\n
-          - you will generate a short title based on the first message a user begins a conversation with
-          - ensure it is not more than 80 characters long
-          - the title should be a summary of the user's message
-          - do not use quotes or colons`,
-				prompt: JSON.stringify(message)
-			});
-
-			return result.text;
-		} catch (e) {
-			console.error('Error generating title:', e.message);
-			const slicedMessage = message.parts[0]?.text?.slice(0, 80)?.trim();
-			if (slicedMessage) {
-				return slicedMessage; // Fallback: use the first 80 characters of the user's message
-			}
-			error(500, e.message || 'Error generating title');
-		}
-	}
-
-	const userMessage = getMostRecentUserMessage(messages);
-
-	if (!userMessage) {
-		error(400, 'No user message found');
-	}
-
-	const saveChat = async (id: string, title: string) => {
-		try {
-			const data = {
-				uuid: id,
-				title: title,
-				model: selectedChatModel,
-				userId: locals.user?.id ?? undefined,
-				browserId: cookies.get('browser-id') ?? undefined
-			};
-
-			const record = await locals.pb.collection('chats').create(data);
-			return record as Chat;
-		} catch (err) {
-			console.error('Error creating chat:', err);
-			return undefined;
-		}
-	};
-
-	const saveMessages = async ({
-		chatId,
-		messages
-	}: {
-		chatId: string;
-		messages: Array<UIMessage>;
-	}) => {
-		try {
-			for (const message of messages) {
-				const data = {
-					chatId: chatId,
-					role: message.role,
-					parts: message.parts,
-					metadata: message.metadata ?? ''
-				};
-
-				await locals.pb.collection('messages').create(data);
-			}
-		} catch (err) {
-			console.error('Error saving messages:', err);
-		}
-	};
-
-	let chat: Chat | undefined;
+// Helper Functions
+async function getModelById(pb: RequestEvent['locals']['pb'], modelId: string): Promise<Model> {
 	try {
-		const chatResult = await locals.pb.collection('chats').getFirstListItem<Chat>(`uuid="${id}"`);
-		chat = chatResult;
+		const record = await pb.collection('models').getOne(modelId, {
+			expand: 'apiKey'
+		});
+		return serializeNonPOJOs(record as Model);
 	} catch (err) {
-		chat = undefined;
-		// console.error('Error fetching chat:', err);
+		console.error('Error fetching model:', err);
+		throw error(500, 'Failed to fetch model details');
+	}
+}
+
+async function generateTitleFromUserMessage(
+	message: UIMessage,
+	modelVersion: string,
+	openrouterInstance: ReturnType<typeof createOpenRouter>
+): Promise<string> {
+	try {
+		const result = await generateText({
+			model: openrouterInstance.chat(modelVersion),
+			system: TITLE_GENERATION_SYSTEM_PROMPT,
+			prompt: JSON.stringify(message)
+		});
+
+		return result.text;
+	} catch (e) {
+		console.error('Error generating title:', e instanceof Error ? e.message : String(e));
+		const slicedMessage = message.parts[0]?.text?.slice(0, MAX_TITLE_LENGTH)?.trim();
+		if (slicedMessage) {
+			return slicedMessage;
+		}
+		throw error(500, 'Error generating title');
+	}
+}
+
+async function findOrCreateChat(
+	chatId: string,
+	pb: RequestEvent['locals']['pb'],
+	locals: RequestEvent['locals'],
+	cookies: RequestEvent['cookies'],
+	selectedChatModel: string,
+	userMessage: UIMessage,
+	modelVersion: string,
+	openrouterInstance: ReturnType<typeof createOpenRouter>
+): Promise<Chat> {
+	try {
+		const existingChat = await pb.collection('chats').getFirstListItem<Chat>(`uuid="${chatId}"`);
+		return existingChat;
+	} catch {
+		const title = await generateTitleFromUserMessage(userMessage, modelVersion, openrouterInstance);
+		return await createChat(chatId, title, selectedChatModel, locals, cookies, pb);
+	}
+}
+
+async function createChat(
+	id: string,
+	title: string,
+	modelId: string,
+	locals: RequestEvent['locals'],
+	cookies: RequestEvent['cookies'],
+	pb: RequestEvent['locals']['pb']
+): Promise<Chat> {
+	try {
+		const data = {
+			uuid: id,
+			title,
+			model: modelId,
+			userId: locals.user?.id ?? undefined,
+			browserId: cookies.get('browser-id') ?? undefined
+		};
+
+		const record = await pb.collection('chats').create(data);
+		return record as Chat;
+	} catch (err) {
+		console.error('Error creating chat:', err);
+		throw error(500, 'Failed to create chat');
+	}
+}
+
+async function saveMessages(
+	pb: RequestEvent['locals']['pb'],
+	chatId: string,
+	messages: UIMessage[]
+): Promise<void> {
+	try {
+		const createPromises = messages.map((message) => {
+			const data = {
+				chatId,
+				role: message.role,
+				parts: message.parts,
+				metadata: message.metadata ?? ''
+			};
+			return pb.collection('messages').create(data);
+		});
+
+		await Promise.all(createPromises);
+	} catch (err) {
+		console.error('Error saving messages:', err);
+		// Don't throw - allow the request to continue even if message saving fails
+	}
+}
+
+function buildSystemPrompt(modelDetails: Model): string {
+	const basePrompt = modelDetails.systemPrompt || '';
+	
+	if (!modelDetails?.filesContext) {
+		return basePrompt;
 	}
 
-	if (!chat) {
-		const title = await generateTitleFromUserMessage({ message: userMessage });
-		chat = (await saveChat(id, title)) as Chat;
-	}
+	const documentationSection = `Use the provided DOCUMENTATION below to answer the user's questions. 
+If the answer is not in the documentation, state that you don't know.
 
-	// TODO
-	// if (chat?.userId !== locals.user?.id && chat?.userId != undefined) {
-	// 	error(403, 'Forbidden');
-	// }
+<DOCUMENTATION>
+${modelDetails.filesContext}
+</DOCUMENTATION>`;
 
-	saveMessages({
-		chatId: chat.id,
-		messages: [userMessage]
-	});
+	return basePrompt + '\n' + documentationSection;
+}
 
-	const documentationMessage = modelDetails?.filesContext
-		? `Use the provided DOCUMENTATION below to answer the user's questions. 
-      If the answer is not in the documentation, state that you don't know.
-
-      <DOCUMENTATION>
-      ${modelDetails?.filesContext}
-      </DOCUMENTATION>`
-		: undefined;
-
-	const result = streamText({
-		model: openrouter.chat(modelDetails?.version),
-		system: (modelDetails.systemPrompt || undefined) + (documentationMessage || ''),
+function buildStreamConfig(modelDetails: Model, messages: UIMessage[]) {
+	return {
+		model: modelDetails.version,
+		system: buildSystemPrompt(modelDetails),
+		messages: convertToModelMessages(messages),
 		maxOutputTokens: modelDetails.maxTokens || undefined,
 		temperature: modelDetails.temperature || undefined,
 		topP: modelDetails.topP || undefined,
 		topK: modelDetails.topK || undefined,
 		presencePenalty: modelDetails.presencePenalty || undefined,
 		frequencyPenalty: modelDetails.frequencyPenalty || undefined,
-		stopSequences: modelDetails.stopSequences || undefined, // TODO
+		stopSequences: modelDetails.stopSequences || undefined
+	};
+}
 
-		messages: convertToModelMessages(messages)
+// Main Handler
+export async function POST({ request, locals, cookies }: RequestEvent) {
+	// Parse request
+	const { id, messages }: { id: string; messages: UIMessage[] } = await request.json();
+
+	// Validate model selection
+	const selectedChatModel = cookies.get('selected-model');
+	if (!selectedChatModel) {
+		throw error(401, 'No chat model selected');
+	}
+
+	// Fetch model details and decrypt API key
+	const modelDetails = await getModelById(locals.pb, selectedChatModel);
+	const encryptedApiKey = modelDetails?.expand?.apiKey?.encryptedApiKey;
+	const decryptedApiKey = decryptApiKey(encryptedApiKey);
+	
+	const openrouter = createOpenRouter({
+		apiKey: decryptedApiKey
+	});
+
+	// Validate user message
+	const userMessage = getMostRecentUserMessage(messages);
+	if (!userMessage) {
+		throw error(400, 'No user message found');
+	}
+
+	// Find or create chat
+	const chat = await findOrCreateChat(
+		id,
+		locals.pb,
+		locals,
+		cookies,
+		selectedChatModel,
+		userMessage,
+		modelDetails.version,
+		openrouter
+	);
+
+	// TODO: Add authorization check
+	// if (chat?.userId !== locals.user?.id && chat?.userId != undefined) {
+	// 	throw error(403, 'Forbidden');
+	// }
+
+	// Save user message
+	await saveMessages(locals.pb, chat.id, [userMessage]);
+
+	// Stream AI response
+	const streamConfig = buildStreamConfig(modelDetails, messages);
+	const result = streamText({
+		...streamConfig,
+		model: openrouter.chat(streamConfig.model)
 	});
 
 	return result.toUIMessageStreamResponse({
-		originalMessages: messages, // IMPORTANT: Required to prevent duplicate messages
-		generateMessageId: () => generateId(), // IMPORTANT: Required for proper message ID generation
-		onFinish: ({ messages, responseMessage }) => {
-			// responseMessage contains just the generated message in UIMessage format
-			saveMessages({ chatId: chat.id, messages: [responseMessage] });
+		originalMessages: messages,
+		generateMessageId: () => generateId(),
+		onFinish: async ({ responseMessage }) => {
+			await saveMessages(locals.pb, chat.id, [responseMessage]);
 		}
 	});
 }

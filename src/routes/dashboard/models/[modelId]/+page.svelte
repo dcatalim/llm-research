@@ -1,6 +1,4 @@
 <script lang="ts">
-	import type { PageProps } from './$types';
-	import Pencil from '@lucide/svelte/icons/pencil';
 	import Download from '@lucide/svelte/icons/download';
 	import Calendar from '@lucide/svelte/icons/calendar';
 	import MessageSquare from '@lucide/svelte/icons/message-square';
@@ -13,7 +11,8 @@
 	import * as Table from '$lib/components/ui/table';
 	import { Badge } from '$lib/components/ui/badge';
 	import type { Chat, Model } from '$lib/pocketbase';
-	import { formatDistanceToNow, format, startOfDay, subDays, isWithinInterval } from 'date-fns';
+	import { formatDistanceToNow, format, subDays } from 'date-fns';
+	import { Spinner } from '$lib/components/ui/spinner/index.js';
 
 	let { data }: { data: { model: Model; chats: Chat[] } } = $props();
 
@@ -22,6 +21,8 @@
 	// Filter state
 	let dateRange = $state<'7d' | '30d' | 'all'>('7d');
 	let selectedChat = $state<Chat | null>(null);
+
+	let loading = $state(false);
 
 	// Analytics calculations
 	const analytics = $derived(() => {
@@ -84,6 +85,8 @@
 
 	// Download functions
 	async function downloadJSON() {
+		loading = true;
+
 		try {
 			// Fetch all chats with their messages
 			const chatsWithMessages = await Promise.all(
@@ -149,9 +152,12 @@
 			console.error('Error downloading JSON:', error);
 			alert('Failed to download data. Please try again.');
 		}
+		loading = false;
 	}
 
 	async function downloadCSV() {
+		loading = true;
+
 		try {
 			// Fetch all chats with their messages
 			const chatsWithMessages = await Promise.all(
@@ -269,6 +275,7 @@
 			console.error('Error downloading CSV:', error);
 			alert('Failed to download data. Please try again.');
 		}
+		loading = false;
 	}
 
 	// Download individual chat with messages
@@ -305,13 +312,20 @@
 			<p class="text-muted-foreground">Analytics and interaction data for your LLM model</p>
 		</div>
 		<div class="flex gap-2">
-			<Button variant="outline" onclick={downloadCSV}>
-				<Download class="mr-2 h-4 w-4" />
+			<Button variant="outline" class="cursor-pointer" onclick={downloadCSV} disabled={loading}>
+				{#if loading}
+					<Spinner />
+				{:else}
+					<Download class="mr-2 h-4 w-4" />
+				{/if}
 				Export CSV
 			</Button>
-			<Button onclick={downloadJSON}>
-				<Download class="mr-2 h-4 w-4" />
-				Export JSON
+			<Button onclick={downloadJSON} class="cursor-pointer" disabled={loading}>
+				{#if loading}
+					<Spinner />
+				{:else}
+					<Download class="mr-2 h-4 w-4" />
+				{/if} Export JSON
 			</Button>
 		</div>
 	</div>
@@ -497,7 +511,7 @@
 					<Table.Root>
 						<Table.Header>
 							<Table.Row>
-								<Table.Head >Title</Table.Head>
+								<Table.Head>Title</Table.Head>
 								<Table.Head class="hidden lg:table-cell">Created</Table.Head>
 								<Table.Head class="hidden lg:table-cell">Updated</Table.Head>
 								<Table.Head>Browser ID</Table.Head>

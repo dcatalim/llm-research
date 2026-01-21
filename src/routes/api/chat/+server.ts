@@ -1,4 +1,4 @@
-import { streamText, type UIMessage, convertToModelMessages, generateId, generateText } from 'ai';
+import { streamText, type UIMessage, convertToModelMessages, generateId } from 'ai';
 import { createOpenRouter } from '@openrouter/ai-sdk-provider';
 import { error } from '@sveltejs/kit';
 import { getMostRecentUserMessage } from '$lib/utils/chat.js';
@@ -8,12 +8,6 @@ import { decryptApiKey } from '$lib/server/encryption.js';
 import type { RequestEvent } from './$types';
 
 // Constants
-const TITLE_GENERATION_SYSTEM_PROMPT = `
-- you will generate a short title based on the first message a user begins a conversation with
-- ensure it is not more than 80 characters long
-- the title should be a summary of the user's message
-- do not use quotes or colons`;
-
 const MAX_TITLE_LENGTH = 60;
 
 // Helper Functions
@@ -29,27 +23,12 @@ async function getModelById(pb: RequestEvent['locals']['pb'], modelId: string): 
 	}
 }
 
-async function generateTitleFromUserMessage(
-	message: UIMessage,
-	modelVersion: string,
-	openrouterInstance: ReturnType<typeof createOpenRouter>
-): Promise<string> {
-	try {
-		const result = await generateText({
-			model: openrouterInstance.chat(modelVersion),
-			system: TITLE_GENERATION_SYSTEM_PROMPT,
-			prompt: JSON.stringify(message)
-		});
-
-		return result.text;
-	} catch (e) {
-		console.error('Error generating title:', e instanceof Error ? e.message : String(e));
-		const slicedMessage = message.parts[0]?.text?.slice(0, MAX_TITLE_LENGTH)?.trim();
-		if (slicedMessage) {
-			return slicedMessage;
-		}
-		throw error(500, 'Error generating title');
+function getTitleFromUserMessage(message: UIMessage): string {
+	const slicedMessage = message.parts[0]?.text?.slice(0, MAX_TITLE_LENGTH)?.trim();
+	if (slicedMessage) {
+		return slicedMessage;
 	}
+	throw error(400, 'User message is empty');
 }
 
 async function findOrCreateChat(
@@ -58,15 +37,13 @@ async function findOrCreateChat(
 	locals: RequestEvent['locals'],
 	cookies: RequestEvent['cookies'],
 	selectedChatModel: string,
-	userMessage: UIMessage,
-	modelVersion: string,
-	openrouterInstance: ReturnType<typeof createOpenRouter>
+	userMessage: UIMessage
 ): Promise<Chat> {
 	try {
 		const existingChat = await pb.collection('chats').getFirstListItem<Chat>(`uuid="${chatId}"`);
 		return existingChat;
 	} catch {
-		const title = await generateTitleFromUserMessage(userMessage, modelVersion, openrouterInstance);
+		const title = getTitleFromUserMessage(userMessage);
 		return await createChat(chatId, title, selectedChatModel, locals, cookies, pb);
 	}
 }
@@ -184,9 +161,7 @@ export async function POST({ request, locals, cookies }: RequestEvent) {
 		locals,
 		cookies,
 		selectedChatModel,
-		userMessage,
-		modelDetails.version,
-		openrouter
+		userMessage
 	);
 
 	// TODO: Add authorization check

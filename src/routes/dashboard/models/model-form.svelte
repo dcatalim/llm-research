@@ -364,14 +364,14 @@
 								type="file"
 								multiple
 								name="files"
-								accept="application/pdf, text/plain"
+								accept="text/plain"
 								bind:this={fileInputRef}
 								onchange={handleFileChange}
 							/>
 						{/snippet}
 					</Form.Control>
 					<Form.Description class="text-xs"
-						>Add some files to provide additional context for the model.</Form.Description
+						>Add some .TXT files to provide additional context for the model.</Form.Description
 					>
 					<Form.FieldErrors />
 				</Form.Field>

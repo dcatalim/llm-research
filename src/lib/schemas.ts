@@ -33,7 +33,7 @@ export const modelConfigurationSchema = z.object({
 	name: z.string().nonempty(),
 	instructions: z.string().nonempty(),
 	// provider: z.string().nonempty(),
-	version: z.string().nonoptional(),
+	version: z.string().nonempty(),
 	systemPrompt: z.string().optional(),
 
 	temperature: z.number().min(0).max(2).default(1),
@@ -47,7 +47,7 @@ export const modelConfigurationSchema = z.object({
 	apiKey: z.string().nonempty(),
 	suggestedMessages: z.array(z.string()).default([]),
 	stopSequences: z.array(z.string()).default([]),
-	filesContext: z.array(z.string()).optional(),
+	filesContext: z.array(z.string()).optional().nullable(),
 });
 export type ModelConfigurationSchema = typeof modelConfigurationSchema;
 

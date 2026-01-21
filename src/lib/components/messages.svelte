@@ -5,6 +5,7 @@
 	import PreviewMessage from './messages/preview-message.svelte';
 	import type { UIMessage } from '@ai-sdk/svelte';
 	import { getLock } from '$lib/hooks/lock';
+	import ChatHeader from './chat-header.svelte';
 
 	let containerRef = $state<HTMLDivElement | null>(null);
 	let endRef = $state<HTMLDivElement | null>(null);
@@ -48,6 +49,10 @@
 </script>
 
 <div bind:this={containerRef} class="flex min-w-0 flex-1 flex-col gap-6 overflow-y-scroll pt-4">
+	{#if mounted && messages.length !== 0}
+		<ChatHeader {model} />
+	{/if}
+
 	{#if mounted && messages.length === 0}
 		<Overview {model} />
 	{/if}

@@ -299,7 +299,7 @@
 
 <div class="space-y-6">
 	<!-- Header -->
-	<div class="flex items-center justify-between">
+	<div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 		<div>
 			<h1 class="text-3xl font-bold text-foreground">{model?.name}</h1>
 			<p class="text-muted-foreground">Analytics and interaction data for your LLM model</p>
@@ -497,9 +497,9 @@
 					<Table.Root>
 						<Table.Header>
 							<Table.Row>
-								<Table.Head>Title</Table.Head>
-								<Table.Head>Created</Table.Head>
-								<Table.Head>Updated</Table.Head>
+								<Table.Head >Title</Table.Head>
+								<Table.Head class="hidden lg:table-cell">Created</Table.Head>
+								<Table.Head class="hidden lg:table-cell">Updated</Table.Head>
 								<Table.Head>Browser ID</Table.Head>
 								<Table.Head class="text-right">Actions</Table.Head>
 							</Table.Row>
@@ -507,14 +507,16 @@
 						<Table.Body>
 							{#each analytics().filteredChats.slice(0, 20) as chat (chat.id)}
 								<Table.Row>
-									<Table.Cell class="font-medium">{chat.title}</Table.Cell>
-									<Table.Cell>
+									<Table.Cell class="max-w-[150px] overflow-hidden font-medium text-ellipsis"
+										>{chat.title}</Table.Cell
+									>
+									<Table.Cell class="hidden lg:table-cell">
 										<div class="flex items-center gap-2 text-sm">
 											<Clock class="h-3 w-3 text-muted-foreground" />
 											{formatDistanceToNow(new Date(chat.created), { addSuffix: true })}
 										</div>
 									</Table.Cell>
-									<Table.Cell class="text-sm text-muted-foreground">
+									<Table.Cell class="hidden text-sm text-muted-foreground lg:table-cell">
 										{format(new Date(chat.updated), 'MMM dd, yyyy')}
 									</Table.Cell>
 									<Table.Cell>

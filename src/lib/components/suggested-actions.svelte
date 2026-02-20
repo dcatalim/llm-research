@@ -5,8 +5,17 @@
 	import { replaceState } from '$app/navigation';
 	import type { User } from '$lib/pocketbase';
 
-	let { user, chatClient, model }: { user: User | undefined; chatClient: Chat; model: any } =
-		$props();
+	let { 
+		user, 
+		chatClient, 
+		model,
+		isMessageLimitReached = false
+	}: { 
+		user: User | undefined; 
+		chatClient: Chat; 
+		model: any;
+		isMessageLimitReached?: boolean;
+	} = $props();
 </script>
 
 <div class="grid w-full gap-2 sm:grid-cols-2">
@@ -26,6 +35,7 @@
 						parts: [{ type: 'text', text: suggestedAction }]
 					});
 				}}
+				disabled={isMessageLimitReached}
 				class="h-auto w-full flex-1 items-start justify-start gap-1 rounded-xl border px-4 py-3.5 text-left text-sm sm:flex-col"
 			>
 				<span class="font-medium text-wrap">{suggestedAction}</span>

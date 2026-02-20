@@ -540,6 +540,26 @@
 					<Form.FieldErrors />
 				</Form.Field>
 
+				<Form.Field {form} name="maxUserMessages">
+					<Form.Control>
+						{#snippet children({ props })}
+							<div class="flex items-center justify-between">
+								{@render explanationTooltip(
+									'Max User Messages',
+
+									'This sets the upper limit for the number of user messages that can be sent to the model in a single conversation. It helps prevent excessive message volume that could affect performance or cost.'
+								)}
+								<!-- <Form.Label>Max User Messages</Form.Label> -->
+							</div>
+
+							<Input {...props} type="number" min="0" bind:value={$formData.maxUserMessages} />
+						{/snippet}
+					</Form.Control>
+					<!-- <Form.Description class="text-xs"
+						>Maximum number of user messages allowed in a conversation.</Form.Description -->
+					<Form.FieldErrors />
+				</Form.Field>
+
 				<Form.Field {form} name="stopSequences">
 					<Form.Control>
 						{#snippet children({ props })}

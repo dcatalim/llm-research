@@ -63,6 +63,13 @@
 	);
 
 	let files = $state<FileUIPart[]>([]);
+
+	// Count user messages and check against limit
+	const userMessageCount = $derived(
+		chatClient.messages.filter((message) => message.role === 'user').length
+	);
+	const maxUserMessages = $derived(model?.maxUserMessages ?? 100);
+	const isMessageLimitReached = $derived(maxUserMessages > 0 && userMessageCount >= maxUserMessages);
 </script>
 
 <div class="flex h-dvh min-w-0 flex-col bg-background">	 
@@ -75,7 +82,16 @@
 
 	<form class="mx-auto flex w-full gap-2 bg-background px-4 pb-4 md:max-w-3xl md:pb-6">
 		{#if !readonly}
-			<MultimodalInput {files} {user} {chatClient} {model} class="flex-1" />
+			<MultimodalInput 
+				{files} 
+				{user} 
+				{chatClient} 
+				{model} 
+				{isMessageLimitReached}
+				{userMessageCount}
+				{maxUserMessages}
+				class="flex-1" 
+			/>
 		{/if}
 	</form>
 </div>

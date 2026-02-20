@@ -48,6 +48,7 @@ export const modelConfigurationSchema = z.object({
 	suggestedMessages: z.array(z.string()).default([]),
 	stopSequences: z.array(z.string()).default([]),
 	filesContext: z.array(z.string()).optional().nullable(),
+	maxUserMessages: z.number().min(0).default(100)
 });
 export type ModelConfigurationSchema = typeof modelConfigurationSchema;
 

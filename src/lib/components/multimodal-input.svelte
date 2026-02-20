@@ -21,12 +21,18 @@
 		user,
 		chatClient,
 		model,
+		isMessageLimitReached = false,
+		userMessageCount = 0,
+		maxUserMessages = 100,
 		class: c
 	}: {
 		files: FileUIPart[];
 		user: User | undefined;
 		chatClient: Chat;
 		model: any;
+		isMessageLimitReached?: boolean;
+		userMessageCount?: number;
+		maxUserMessages?: number;
 		class?: string;
 	} = $props();
 
@@ -62,6 +68,12 @@
 		// Add validation check
 		if (input.trim().length === 0) {
 			input = input.trim();
+			return;
+		}
+
+		// Check message limit
+		if (isMessageLimitReached) {
+			toast.error(`You have reached the maximum limit of ${maxUserMessages} messages for this model.`);
 			return;
 		}
 
@@ -150,9 +162,15 @@
 </script>
 
 <div class="relative flex w-full flex-col gap-4">
+	{#if isMessageLimitReached}
+		<div class="rounded-lg border border-orange-500/50 bg-orange-50 p-3 text-sm text-orange-800 dark:bg-orange-950/50 dark:text-orange-200">
+			<strong>Message limit reached:</strong> You have sent {userMessageCount} of {maxUserMessages} allowed messages for this model.
+		</div>
+	{/if}
+	
 	<!-- {#if mounted && chatClient.messages.length === 0 && files.length === 0 && uploadQueue.length === 0} -->
-	{#if mounted}
-		<SuggestedActions {user} {chatClient} {model} />
+	{#if mounted && !isMessageLimitReached}
+		<SuggestedActions {user} {chatClient} {model} {isMessageLimitReached} />
 	{/if}
 
 	<input
@@ -187,7 +205,7 @@
 
 	<Textarea
 		bind:ref={textareaRef}
-		placeholder="Send a message..."
+		placeholder={isMessageLimitReached ? 'Message limit reached' : 'Send a message...'}
 		bind:value={() => input, setInput}
 		class={cn(
 			'max-h-[calc(75dvh)] min-h-[24px] resize-none overflow-hidden rounded-2xl bg-muted pb-10 !text-base dark:border-zinc-700',
@@ -195,12 +213,15 @@
 		)}
 		rows={2}
 		autofocus
+		disabled={isMessageLimitReached}
 		onkeydown={(event) => {
 			if (event.key === 'Enter' && !event.shiftKey && !event.isComposing) {
 				event.preventDefault();
 
 				if (loading) {
 					toast.error('Please wait for the model to finish its response!');
+				} else if (isMessageLimitReached) {
+					toast.error(`You have reached the maximum limit of ${maxUserMessages} messages for this model.`);
 				} else {
 					submitForm();
 				}
@@ -230,7 +251,7 @@
 			event.preventDefault();
 			fileInputRef?.click();
 		}}
-		disabled={loading}
+		disabled={loading || isMessageLimitReached}
 		variant="ghost"
 	>
 		<PaperclipIcon size={14} />
@@ -257,7 +278,7 @@
 			event.preventDefault();
 			submitForm();
 		}}
-		disabled={input.length === 0 || uploadQueue.length > 0}
+		disabled={input.length === 0 || uploadQueue.length > 0 || isMessageLimitReached}
 	>
 		<ArrowUpIcon size={14} />
 	</Button>

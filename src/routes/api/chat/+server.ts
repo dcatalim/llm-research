@@ -6,6 +6,7 @@ import type { Chat, Model } from '$lib/pocketbase.js';
 import { serializeNonPOJOs } from '$lib/utils';
 import { decryptApiKey } from '$lib/server/encryption.js';
 import type { RequestEvent } from './$types';
+import { json } from 'stream/consumers';
 
 // Constants
 const MAX_TITLE_LENGTH = 60;
@@ -98,7 +99,7 @@ async function saveMessages(
 
 function buildSystemPrompt(modelDetails: Model): string {
 	const basePrompt = modelDetails.systemPrompt || '';
-	
+
 	if (!modelDetails?.filesContext) {
 		return basePrompt;
 	}
@@ -143,7 +144,7 @@ export async function POST({ request, locals, cookies }: RequestEvent) {
 	const modelDetails = await getModelById(locals.pb, selectedChatModel);
 	const encryptedApiKey = modelDetails?.expand?.apiKey?.encryptedApiKey;
 	const decryptedApiKey = decryptApiKey(encryptedApiKey);
-	
+
 	const openrouter = createOpenRouter({
 		apiKey: decryptedApiKey
 	});
@@ -184,6 +185,50 @@ export async function POST({ request, locals, cookies }: RequestEvent) {
 		generateMessageId: () => generateId(),
 		onFinish: async ({ responseMessage }) => {
 			await saveMessages(locals.pb, chat.id, [responseMessage]);
+		},
+		onError: (error) => {
+			if (error == null) {
+				return 'unknown error';
+			}
+
+			if (error?.responseBody) {
+				try {
+					const parsed = typeof error.responseBody === 'string' 
+						? JSON.parse(error.responseBody)
+						: error.responseBody;
+					
+					// Try to extract nested error message from metadata.raw
+					if (parsed?.error?.metadata?.raw) {
+						try {
+							const rawError = JSON.parse(parsed.error.metadata.raw);
+							if (rawError?.error?.message) {
+								return rawError.error.message;
+							}
+						} catch {
+							// If parsing raw fails, continue to other fallbacks
+						}
+					}
+					
+					// Fall back to outer error message
+					if (parsed?.error?.message) {
+						return parsed.error.message;
+					}
+					
+					return JSON.stringify(parsed);
+				} catch {
+					return String(error.responseBody);
+				}
+			}
+
+			if (typeof error === 'string') {
+				return error;
+			}
+
+			if (error instanceof Error) {
+				return error.message;
+			}
+
+			return JSON.stringify(error);
 		}
 	});
 }

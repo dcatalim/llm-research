@@ -33,11 +33,12 @@
 			// 	await chatHistory.refetch();
 			// },
 			onError: (error) => {
+				console.error("Error in chat client:", JSON.stringify(error));
+
 				let message = 'An error occurred while generating the response.';
 				try {
 					// If there's an API error, its message will be JSON-formatted
 					const jsonError = JSON.parse(error.message);
-					console.log(jsonError);
 					if (
 						typeof jsonError === 'object' &&
 						jsonError !== null &&
@@ -53,6 +54,7 @@
 				}
 
 				toast.error(message, {
+					duration: 10000,
 					action: {
 						label: 'Retry',
 						onClick: () => chatClient.regenerate()

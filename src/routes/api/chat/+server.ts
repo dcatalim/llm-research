@@ -46,7 +46,7 @@ async function checkBrowserChatLimit(
             totalItems: true
         });
 
-        if (chatCount.totalItems >= MAX_CHATS_PER_BROWSER) {
+        if (!pb.authStore.isValid && chatCount.totalItems >= MAX_CHATS_PER_BROWSER) {
             throw error(
                 429,
                 `Chat limit reached. You can only create ${MAX_CHATS_PER_BROWSER} conversations. Thank you for testing this model.`

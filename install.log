@@ -1,0 +1,9 @@
+[00:29:02 2026-03-19] FETCHING Version 2.42.14
+[00:29:02 2026-03-19] DOWNLOADING https://github.com/spicetify/cli/releases/download/v2.42.14/spicetify-2.42.14-linux-amd64.tar.gz
+[00:29:03 2026-03-19] EXTRACTING /home/supra/.spicetify/spicetify.tar.gz
+[00:29:03 2026-03-19] SETTING EXECUTABLE PERMISSIONS TO /home/supra/.spicetify/spicetify
+[00:29:03 2026-03-19] REMOVING /home/supra/.spicetify/spicetify.tar.gz
+[00:29:03 2026-03-19] spicetify path already set in /home/supra/.bashrc, continuing...
+[00:29:03 2026-03-19] spicetify path already set in /home/supra/.bash_profile, continuing...
+[00:29:03 2026-03-19] spicetify v2.42.14 was installed successfully to /home/supra/.spicetify
+[00:29:03 2026-03-19] Run 'spicetify --help' to get started

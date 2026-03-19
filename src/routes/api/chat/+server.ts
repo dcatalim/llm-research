@@ -97,7 +97,8 @@ async function createChat(
             title,
             model: modelId,
             userId: locals.user?.id ?? undefined,
-            browserId: cookies.get('browser-id') ?? undefined
+            browserId: cookies.get('browser-id') ?? undefined,
+            responseId: cookies.get('response-id') ?? undefined
         };
 
         const record = await pb.collection('chats').create(data);

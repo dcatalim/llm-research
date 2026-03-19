@@ -105,6 +105,7 @@
 							updated: chat.updated,
 							// userId: chat.userId,
 							browserId: chat.browserId,
+							responseId: chat.responseId,
 							messages: chatData.messages,
 							messageCount: chatData.messageCount
 						};
@@ -118,6 +119,7 @@
 							updated: chat.updated,
 							// userId: chat.userId,
 							browserId: chat.browserId,
+							responseId: chat.responseId,
 							messages: [],
 							messageCount: 0,
 							error: 'Failed to fetch messages'
@@ -188,6 +190,7 @@
 				'role',
 				'text',
 				'browser_id',
+				'response_id',
 				'dialog_id',
 				'dialog_state',
 				'id',
@@ -246,6 +249,7 @@
 						message.role || 'user', // role
 						messageContent, // text
 						chat.browserId || '', // browserId
+						chat.responseId || '', // responseId
 						chat.id, // dialog_id
 						JSON.stringify(dialogState), // dialog_state
 						message.id || '', // id
@@ -537,11 +541,11 @@
 										<Badge
 											variant="outline"
 											class="max-w-[100px] cursor-pointer font-mono text-xs "
-											onclick={() => navigator.clipboard.writeText(chat.browserId)}
+											onclick={() => navigator.clipboard.writeText(chat.responseId)}
 										>
-											<span class="sr-only">Browser ID:</span>
+											<span class="sr-only">Response ID:</span>
 											<p class="truncate">
-												{chat.browserId}
+												{chat.responseId}
 											</p>
 										</Badge>
 									</Table.Cell>

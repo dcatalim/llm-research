@@ -21,6 +21,7 @@ export interface Chat {
 	title: string;
 	userId: string;
 	browserId: string;
+	responseId: string;
 	model: string;
 	created: Date;
 	updated: Date;

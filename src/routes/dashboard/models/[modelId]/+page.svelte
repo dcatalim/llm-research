@@ -89,44 +89,12 @@
 
 		try {
 			// Fetch all chats with their messages
-			const chatsWithMessages = await Promise.all(
-				chats.map(async (chat) => {
-					try {
-						const response = await fetch(`/api/chat/${chat.id}/download`);
-						if (!response.ok) {
-							throw new Error('Failed to fetch chat data');
-						}
-						const chatData = await response.json();
-						return {
-							id: chat.id,
-							uuid: chat.uuid,
-							title: chat.title,
-							created: chat.created,
-							updated: chat.updated,
-							// userId: chat.userId,
-							browserId: chat.browserId,
-							responseId: chat.responseId,
-							messages: chatData.messages,
-							messageCount: chatData.messageCount
-						};
-					} catch (error) {
-						console.error(`Error fetching chat ${chat.id}:`, error);
-						return {
-							id: chat.id,
-							uuid: chat.uuid,
-							title: chat.title,
-							created: chat.created,
-							updated: chat.updated,
-							// userId: chat.userId,
-							browserId: chat.browserId,
-							responseId: chat.responseId,
-							messages: [],
-							messageCount: 0,
-							error: 'Failed to fetch messages'
-						};
-					}
-				})
-			);
+			const chatsWithMessages = await fetch(`/api/model/${model.id}/chats/download`).then((res) => {
+				if (!res.ok) {
+					throw new Error('Failed to fetch chats with messages');
+				}
+				return res.json();
+			});
 
 			const dataToExport = {
 				model: {
@@ -162,28 +130,13 @@
 
 		try {
 			// Fetch all chats with their messages
-			const chatsWithMessages = await Promise.all(
-				chats.map(async (chat) => {
-					try {
-						const response = await fetch(`/api/chat/${chat.id}/download`);
-						if (!response.ok) {
-							throw new Error('Failed to fetch chat data');
-						}
-						const chatData = await response.json();
-						return {
-							chat,
-							messages: chatData.messages
-						};
-					} catch (error) {
-						console.error(`Error fetching chat ${chat.id}:`, error);
-						return {
-							chat,
-							messages: []
-						};
-					}
-				})
-			);
-
+			const chatsWithMessages = await fetch(`/api/model/${model.id}/chats/download`).then((res) => {
+				if (!res.ok) {
+					throw new Error('Failed to fetch chats with messages');
+				}
+				return res.json();
+			});
+			
 			// Create CSV with template format
 			const headers = [
 				'public_id',
